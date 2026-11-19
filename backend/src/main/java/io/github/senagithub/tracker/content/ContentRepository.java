@@ -18,6 +18,21 @@ public interface ContentRepository extends JpaRepository<Content, Long>, JpaSpec
     @EntityGraph(attributePaths = "client")
     List<Content> findAll(@Nullable Specification<Content> spec, Sort sort);
 
+    // --- Dashboard lists (client loaded in the same query) ---
+
+    /** Every content due in [from, to], whatever its status — the dashboard's week view. */
+    @EntityGraph(attributePaths = "client")
+    List<Content> findByDueDateBetweenOrderByDueDateAscIdAsc(LocalDate from, LocalDate to);
+
+    /** Used with {@code status = PUBLISHED} to find overdue content. */
+    @EntityGraph(attributePaths = "client")
+    List<Content> findByDueDateBeforeAndStatusNotOrderByDueDateAscIdAsc(LocalDate date, ContentStatus status);
+
+    @EntityGraph(attributePaths = "client")
+    List<Content> findByStatusOrderByDueDateAscIdAsc(ContentStatus status);
+
+    // --- Per-client counts ---
+
     /** One row per (client, status) pair that has content. */
     interface StatusCountRow {
         Long getClientId();

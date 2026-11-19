@@ -1,5 +1,7 @@
 package io.github.senagithub.tracker.content;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -18,18 +20,10 @@ public interface ContentRepository extends JpaRepository<Content, Long>, JpaSpec
     @EntityGraph(attributePaths = "client")
     List<Content> findAll(@Nullable Specification<Content> spec, Sort sort);
 
-    // --- Dashboard lists (client loaded in the same query) ---
-
-    /** Every content due in [from, to], whatever its status — the dashboard's week view. */
+    /** Paged variant; the count query is derived from the same specification. */
+    @Override
     @EntityGraph(attributePaths = "client")
-    List<Content> findByDueDateBetweenOrderByDueDateAscIdAsc(LocalDate from, LocalDate to);
-
-    /** Used with {@code status = PUBLISHED} to find overdue content. */
-    @EntityGraph(attributePaths = "client")
-    List<Content> findByDueDateBeforeAndStatusNotOrderByDueDateAscIdAsc(LocalDate date, ContentStatus status);
-
-    @EntityGraph(attributePaths = "client")
-    List<Content> findByStatusOrderByDueDateAscIdAsc(ContentStatus status);
+    Page<Content> findAll(@Nullable Specification<Content> spec, Pageable pageable);
 
     // --- Per-client counts ---
 

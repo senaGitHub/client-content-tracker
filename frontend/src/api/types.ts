@@ -64,6 +64,28 @@ export interface ContentFilters {
   clientId?: number
   type?: ContentType
   q?: string
+  /** Past due and not published (same rule as the dashboard). */
+  overdue?: boolean
+  /** Unpublished and due today or in the next 6 days (same rule as the dashboard). */
+  dueThisWeek?: boolean
+}
+
+/** Paging params for list endpoints. `page` is zero-based; `sort` is e.g. 'dueDate,asc'. */
+export interface PageParams {
+  page?: number
+  size?: number
+  sort?: string
+}
+
+/** Mirror of the backend's PageResponse record. */
+export interface Page<T> {
+  items: T[]
+  /** Zero-based page index. */
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  hasNext: boolean
 }
 
 export interface ActivityResponse {

@@ -25,6 +25,11 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  data:
+    web:
+      pageable:
+        # Requests for a bigger page are clamped to this, so one call can't load everything.
+        max-page-size: 100
 
 app:
   seed:

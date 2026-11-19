@@ -4,9 +4,13 @@ import io.github.senagithub.tracker.client.dto.ClientRequest;
 import io.github.senagithub.tracker.client.dto.ClientResponse;
 import io.github.senagithub.tracker.client.dto.StatusCounts;
 import io.github.senagithub.tracker.common.NotFoundException;
+import io.github.senagithub.tracker.common.PageResponse;
+import io.github.senagithub.tracker.common.Paging;
 import io.github.senagithub.tracker.content.ContentRepository;
 import io.github.senagithub.tracker.content.ContentRepository.OverdueCountRow;
 import io.github.senagithub.tracker.content.ContentRepository.StatusCountRow;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +19,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,14 +34,33 @@ public class ClientService {
         this.contentRepository = contentRepository;
     }
 
-    /** Three queries in total (clients, status counts, overdue counts), regardless of how many clients exist. */
+    /** Properties the list endpoint may be sorted by (?sort=createdAt,desc). */
+    private static final Set<String> SORTABLE = Set.of("name", "industry", "contactName", "createdAt");
+    private static final Sort DEFAULT_SORT = Sort.by("name");
+
+    /** All clients, unpaged: used by the dashboard summary. */
     public List<ClientResponse> list() {
-        Map<Long, StatusCounts> counts = buildCounts(
+        Map<Long, StatusCounts> counts = allCounts();
+        return clientRepository.findAll(DEFAULT_SORT.and(Sort.by("id"))).stream()
+                .map(client -> withCounts(client, counts))
+                .toList();
+    }
+
+    /** Three queries plus the page count query, regardless of how many clients exist. */
+    public PageResponse<ClientResponse> page(Pageable pageable) {
+        Page<Client> page = clientRepository.findAll(Paging.sanitize(pageable, DEFAULT_SORT, SORTABLE));
+        Map<Long, StatusCounts> counts = allCounts();
+        return PageResponse.from(page, client -> withCounts(client, counts));
+    }
+
+    private Map<Long, StatusCounts> allCounts() {
+        return buildCounts(
                 contentRepository.countByClientAndStatus(),
                 contentRepository.countOverdueByClient(LocalDate.now()));
-        return clientRepository.findAll(Sort.by("name")).stream()
-                .map(client -> ClientResponse.from(client, counts.getOrDefault(client.getId(), StatusCounts.EMPTY)))
-                .toList();
+    }
+
+    private static ClientResponse withCounts(Client client, Map<Long, StatusCounts> counts) {
+        return ClientResponse.from(client, counts.getOrDefault(client.getId(), StatusCounts.EMPTY));
     }
 
     public ClientResponse get(Long id) {

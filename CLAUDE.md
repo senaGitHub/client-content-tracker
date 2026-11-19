@@ -31,8 +31,9 @@ Business rules:
 - Demo data: a seeder runs on startup only if the DB is empty. Dates are relative to today so overdue / this week always look realistic. 6 fictional hospitality brands (e.g. Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health) and ~36 contents. Never use real brand names or logos.
 
 ## API (prefix /api)
-- GET /clients (with content counts per status), POST /clients, GET /clients/{id}
-- GET /contents?status=&clientId=&type=&q=, POST /contents, PUT /contents/{id}
+- GET /clients?page=&size=&sort= (paged, with content counts per status), POST /clients, GET /clients/{id}
+- GET /contents?status=&clientId=&type=&q=&overdue=&dueThisWeek=&page=&size=&sort=, POST /contents, PUT /contents/{id}
+- Paged lists return { items, page (0-based), size, totalElements, totalPages, hasNext }; size defaults to 20, max 100; sort is whitelisted (unknown property → 400). overdue / dueThisWeek use the same specifications as the dashboard.
 - PATCH /contents/{id}/status  body: { "status": "..." }  → 409 on invalid transition
 - GET /dashboard → totals per status, needsAttention { overdue, dueThisWeek, awaitingApproval }, week (7 days with items per day), clients summary, recent activity
 Errors: @RestControllerAdvice returning ProblemDetail (RFC 7807). Validation errors → 400 with field messages. CORS origins from env var.
@@ -44,6 +45,7 @@ Tests: only a focused unit test for the status transition rule.
 ## Frontend
 Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with Board | List toggle.
 Dialogs: New client, New/Edit content. Status can also be changed inline (list) and by drag & drop (board). On a rejected move (409) the card snaps back and a toast explains why.
+Pagination: List view is paginated; Board loads the first 20 per column with a "Load more" button (Phase 7).
 UX must-haves: skeleton loading, empty states, toasts (with Undo for status changes), dark mode toggle (persisted), responsive down to mobile, keyboard-friendly dialogs.
 No login, no charts, no fake metrics.
 
@@ -67,5 +69,5 @@ Layout: left sidebar on page background (logo "Harbour" with the subtitle "Clien
 9. Polish + README (screenshot, architecture, decisions & trade-offs, what's next, AI usage, how to run) + frontend deploy.
 
 ## Out of scope (on purpose — mention in README)
-Auth, delete, pagination, client editing, multi-module Maven, SSR/Nuxt (internal panel, SPA is enough).
+Auth, delete, client editing, multi-module Maven, SSR/Nuxt (internal panel, SPA is enough).
 Separate dev/prod databases (one managed Neon Postgres is used for both due to time; in a real project: Docker Compose locally, Testcontainers for tests, managed DB in prod).

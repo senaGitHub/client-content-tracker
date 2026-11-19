@@ -50,8 +50,10 @@ function buildUrl(path: string, query?: Query): string {
   if (!query) return url
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
-    // Skip empty filters so `?status=` is never sent.
-    if (value !== undefined && value !== null && value !== '') params.set(key, String(value))
+    // Skip empty / off filters so `?status=` or `?overdue=false` is never sent.
+    if (value !== undefined && value !== null && value !== '' && value !== false) {
+      params.set(key, String(value))
+    }
   }
   const qs = params.toString()
   return qs ? `${url}?${qs}` : url

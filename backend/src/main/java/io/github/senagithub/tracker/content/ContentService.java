@@ -8,18 +8,22 @@ import io.github.senagithub.tracker.common.FieldValidationException;
 import io.github.senagithub.tracker.common.NotFoundException;
 import io.github.senagithub.tracker.content.dto.ContentRequest;
 import io.github.senagithub.tracker.content.dto.ContentResponse;
-import org.springframework.data.domain.Sort;
+import io.github.senagithub.tracker.common.PageResponse;
+import io.github.senagithub.tracker.common.Paging;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
 public class ContentService {
 
-    private static final Sort DEFAULT_SORT = Sort.by("dueDate", "id");
+    /** Properties the list endpoint may be sorted by (?sort=title,asc). */
+    private static final Set<String> SORTABLE =
+            Set.of("dueDate", "title", "status", "type", "createdAt", "updatedAt", "client.name");
 
     private final ContentRepository contentRepository;
     private final ClientRepository clientRepository;
@@ -33,12 +37,12 @@ public class ContentService {
         this.activityService = activityService;
     }
 
-    public List<ContentResponse> list(ContentStatus status, Long clientId, ContentType type, String query) {
+    public PageResponse<ContentResponse> list(ContentFilter filter, Pageable pageable) {
         LocalDate today = LocalDate.now();
-        return contentRepository.findAll(ContentSpecifications.matching(status, clientId, type, query), DEFAULT_SORT)
-                .stream()
-                .map(content -> ContentResponse.from(content, today))
-                .toList();
+        Pageable page = Paging.sanitize(pageable, ContentSpecifications.BY_DUE_DATE, SORTABLE);
+        return PageResponse.from(
+                contentRepository.findAll(ContentSpecifications.matching(filter, today), page),
+                content -> ContentResponse.from(content, today));
     }
 
     /** New content always starts as a draft; the pipeline is the only way forward. */

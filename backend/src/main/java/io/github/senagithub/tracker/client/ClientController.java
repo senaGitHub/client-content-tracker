@@ -4,7 +4,11 @@ import io.github.senagithub.tracker.client.dto.ClientRequest;
 import io.github.senagithub.tracker.client.dto.ClientResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.github.senagithub.tracker.common.PageResponse;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -29,9 +32,11 @@ public class ClientController {
     }
 
     @GetMapping
-    @Operation(summary = "List clients with content counts per status (and overdue)")
-    public List<ClientResponse> list() {
-        return clientService.list();
+    @Operation(summary = "List clients with content counts per status (and overdue); paged, sorted by name",
+            description = "Sortable by name, industry, contactName, createdAt. "
+                    + "Page size defaults to 20 and is capped at 100.")
+    public PageResponse<ClientResponse> list(@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+        return clientService.page(pageable);
     }
 
     @GetMapping("/{id}")

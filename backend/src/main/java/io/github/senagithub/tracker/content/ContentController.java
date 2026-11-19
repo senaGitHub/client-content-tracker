@@ -1,5 +1,6 @@
 package io.github.senagithub.tracker.content;
 
+import io.github.senagithub.tracker.common.PageResponse;
 import io.github.senagithub.tracker.content.dto.ContentRequest;
 import io.github.senagithub.tracker.content.dto.ContentResponse;
 import io.github.senagithub.tracker.content.dto.StatusChangeRequest;
@@ -8,6 +9,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/contents")
@@ -35,14 +38,21 @@ public class ContentController {
     }
 
     @GetMapping
-    @Operation(summary = "List contents, optionally filtered; sorted by due date")
-    public List<ContentResponse> list(
+    @Operation(summary = "List contents, optionally filtered; paged, sorted by due date unless ?sort= is given",
+            description = "Sortable by dueDate, title, status, type, createdAt, updatedAt, client.name. "
+                    + "Page size defaults to 20 and is capped at 100.")
+    public PageResponse<ContentResponse> list(
             @RequestParam(required = false) ContentStatus status,
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) ContentType type,
             @Parameter(description = "Case-insensitive search in the title")
-            @RequestParam(name = "q", required = false) String query) {
-        return contentService.list(status, clientId, type, query);
+            @RequestParam(name = "q", required = false) String query,
+            @Parameter(description = "Only past-due content that is not published")
+            @RequestParam(defaultValue = "false") boolean overdue,
+            @Parameter(description = "Only unpublished content due today or in the next 6 days")
+            @RequestParam(defaultValue = "false") boolean dueThisWeek,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+        return contentService.list(new ContentFilter(status, clientId, type, query, overdue, dueThisWeek), pageable);
     }
 
     @PostMapping

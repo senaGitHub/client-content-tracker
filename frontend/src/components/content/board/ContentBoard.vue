@@ -232,13 +232,12 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
 
   <div v-else class="flex flex-col gap-3">
     <!-- Mobile column switcher -->
-    <div v-if="!isDesktop" role="tablist" aria-label="Pano sütunu" class="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+    <div v-if="!isDesktop" role="group" aria-label="Pano sütunu" class="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
       <button
         v-for="status in STATUS_ORDER"
         :key="status"
         type="button"
-        role="tab"
-        :aria-selected="mobileColumn === status"
+        :aria-pressed="mobileColumn === status"
         :class="cn(
           'flex h-9 items-center justify-center gap-1.5 rounded-md text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
           mobileColumn === status ? 'bg-card font-semibold text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'font-medium text-muted-foreground',

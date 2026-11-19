@@ -58,13 +58,12 @@ const resultCount = computed(() => {
 <template>
   <PageHeader title="İçerikler" description="Tüm markaların içerikleri, taslaktan yayına." class="mb-5">
     <template #actions>
-      <div role="tablist" aria-label="Görünüm" class="flex rounded-lg bg-muted p-1">
+      <div role="group" aria-label="Görünüm" class="flex rounded-lg bg-muted p-1">
         <button
           v-for="view in VIEWS"
           :key="view.value"
           type="button"
-          role="tab"
-          :aria-selected="state.view === view.value"
+          :aria-pressed="state.view === view.value"
           :class="cn(
             'rounded-md px-4 py-2 text-sm outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
             state.view === view.value

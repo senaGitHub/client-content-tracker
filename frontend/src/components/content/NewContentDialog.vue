@@ -42,6 +42,12 @@ async function submit() {
   }
 }
 
+/** Start in the title field instead of the close button, the first focusable element. */
+function focusTitle(event: Event) {
+  event.preventDefault()
+  document.getElementById(id('title'))?.focus()
+}
+
 const labelClass = 'text-sm font-semibold'
 const optional = 'font-normal text-muted-foreground'
 </script>
@@ -51,6 +57,7 @@ const optional = 'font-normal text-muted-foreground'
     <DialogContent
       :show-close-button="false"
       class="max-h-[calc(100dvh-2rem)] gap-0 overflow-y-auto p-0 sm:max-w-[620px]"
+      @open-auto-focus="focusTitle"
     >
       <div class="flex items-start justify-between gap-4 px-5 pt-6 pb-1.5 sm:px-[26px]">
         <div>
@@ -140,6 +147,7 @@ const optional = 'font-normal text-muted-foreground'
             :id="id('dueDate')"
             v-model="form.dueDate"
             type="date"
+            class="focus:border-ring focus:ring-3 focus:ring-ring/50"
             :aria-invalid="!!errors.dueDate"
             :aria-describedby="describedBy('dueDate')"
           />

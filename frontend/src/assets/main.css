@@ -39,16 +39,16 @@
   --muted: #f3ece9;
   --accent: #fde9e2; /* hover/focus background of menu items */
   --accent-foreground: #1c1716;
-  --destructive: #c9502e; /* validation errors: dark coral, never red */
+  --destructive: #ab4427; /* validation errors: dark coral, never red */
   --ring: #e0623f;
   --radius: 10px;
 
   /* Coral accent */
   --coral: #e0623f;
-  --coral-text: #c9502e;
+  --coral-text: #ab4427;
   --coral-soft: #fde9e2;
   --nav-active: #fbddd4;
-  --coral-solid: #c9502e; /* badge background that keeps white text readable */
+  --coral-solid: #c74f2e; /* badge background that keeps white text readable */
   --coral-solid-foreground: #ffffff;
   --logo-from: #f4895a;
   --logo-to: #e0623f;
@@ -64,7 +64,7 @@
   --status-draft-fg: #3b3331;
   --status-draft-dot: #b9afab;
   --status-review-bg: #fdebc8;
-  --status-review-fg: #b36a00;
+  --status-review-fg: #9c5c00;
   --status-review-dot: #f2a93b;
   --status-published-bg: #ddf3e4;
   --status-published-fg: #1e7a44;
@@ -73,7 +73,7 @@
   /* Approve button */
   --approve-soft: #e7f5ec;
   --approve-soft-fg: #1e7a44;
-  --approve: #2f8a57;
+  --approve: #2e8654;
   --approve-foreground: #ffffff;
 
   /* Content type + toast */
@@ -140,7 +140,7 @@
 
   --approve-soft: #173222;
   --approve-soft-fg: #7fd3a0;
-  --approve: #2f8a57;
+  --approve: #2e8654;
   --approve-foreground: #ffffff;
 
   --type-social: #f06aa8;

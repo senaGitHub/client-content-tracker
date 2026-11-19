@@ -168,6 +168,15 @@ const meta = computed(() => {
   return [current.client.name, TYPE_LABELS[current.type], current.channel].filter(Boolean).join(' · ')
 })
 
+/**
+ * Focus the panel itself rather than the close button or a field: screen readers still announce the
+ * title, the next Tab reaches the first control, and phones don't pop up the keyboard over the sheet.
+ */
+function focusPanel(event: Event) {
+  event.preventDefault()
+  ;(event.currentTarget as HTMLElement | null)?.focus()
+}
+
 const labelClass = 'text-sm font-semibold'
 const optional = 'font-normal text-muted-foreground'
 </script>
@@ -177,7 +186,8 @@ const optional = 'font-normal text-muted-foreground'
     <SheetContent
       side="right"
       :show-close-button="false"
-      class="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[500px]"
+      class="gap-0 p-0 outline-none data-[side=right]:w-full data-[side=right]:sm:max-w-[500px]"
+      @open-auto-focus="focusPanel"
     >
       <template v-if="item">
         <!-- Brand cover -->
@@ -281,6 +291,7 @@ const optional = 'font-normal text-muted-foreground'
                   :id="id('dueDate')"
                   v-model="form.dueDate"
                   type="date"
+                  class="focus:border-ring focus:ring-3 focus:ring-ring/50"
                   :aria-invalid="!!errors.dueDate"
                   :aria-describedby="describedBy('dueDate')"
                 />

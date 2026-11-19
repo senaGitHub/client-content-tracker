@@ -101,6 +101,12 @@ async function submit() {
   }
 }
 
+/** Start in the name field instead of the close button, the first focusable element. */
+function focusName(event: Event) {
+  event.preventDefault()
+  document.getElementById(id('name'))?.focus()
+}
+
 const labelClass = 'text-sm font-semibold'
 const optional = 'font-normal text-muted-foreground'
 const errorClass = 'text-xs font-medium text-destructive'
@@ -118,6 +124,7 @@ const TEXT_FIELDS: { field: Exclude<Field, 'coverImageUrl'>; label: string; plac
     <DialogContent
       :show-close-button="false"
       class="max-h-[calc(100dvh-2rem)] gap-0 overflow-y-auto p-0 sm:max-w-[620px]"
+      @open-auto-focus="focusName"
     >
       <div class="flex items-start justify-between gap-4 px-5 pt-6 pb-1.5 sm:px-[26px]">
         <div>

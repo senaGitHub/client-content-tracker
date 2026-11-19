@@ -78,9 +78,12 @@ function isActive(key: NavItem['key']): boolean {
                 v-show="item.count > 0"
                 class="shrink-0 rounded-full bg-coral-solid px-2 py-0.5 text-[13px] font-bold text-coral-solid-foreground tabular-nums"
               >
-                {{ item.count }}<span class="sr-only"> içerik onay bekliyor</span>
+                <span class="sr-only">, </span>{{ item.count }}<span class="sr-only"> içerik onay bekliyor</span>
               </span>
-              <span v-else class="shrink-0 text-[13px] font-normal text-muted-foreground tabular-nums">{{ item.count }}</span>
+              <!-- The hidden words make screen readers say "Markalar, 6 marka" instead of "Markalar6". -->
+              <span v-else class="shrink-0 text-[13px] font-normal text-muted-foreground tabular-nums">
+                <span class="sr-only">, </span>{{ item.count }}<span class="sr-only"> {{ item.key === 'brands' ? 'marka' : 'içerik' }}</span>
+              </span>
             </template>
           </RouterLink>
         </li>

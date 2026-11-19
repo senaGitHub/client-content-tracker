@@ -78,7 +78,7 @@ Colour rules:
 - RED (#D92D20) is reserved for overdue only: solid overdue chips, the Geciken tile and overdue dates. Validation errors and link hovers use the dark coral, never red.
 - Primary buttons are dark (#1C1716 with white text).
 - The accent is coral, used for the active nav item, selected tabs, links, focus and the drop target.
-- Coral #E0623F is under 4.5:1 on white, so text smaller than 18px uses the dark coral #C9502E.
+- Coral #E0623F is under 4.5:1 on white, so text smaller than 18px uses the dark coral #AB4427 (darkened from #C9502E in Phase 13 so it also passes 4.5:1 on the tinted sidebar, nav-active and coral-soft backgrounds).
 - Every colour is a CSS variable mapped to shadcn-vue tokens. Dark mode stays: same roles, values below.
 
 | Token | Light | Dark |
@@ -92,13 +92,13 @@ Colour rules:
 | text / secondary / muted | #1C1716 / #3B3331 / #6F6461 | #F3EDEA / #D6CCC8 / #A89D99 |
 | primary / on-primary | #1C1716 / #FFFFFF | #F3EDEA / #1C1716 |
 | accent | #E0623F | #F08A6C |
-| accent text | #C9502E | #F5A58C |
+| accent text | #AB4427 | #F5A58C |
 | accent soft / nav active | #FDE9E2 / #FBDDD4 | #3A221A / #44271D |
 | overdue solid / text / soft bg / soft border | #D92D20 / #B42318 / #FFF5F4 / #F7C9C3 | #D92D20 / #F97066 / #2C1614 / #5A2620 |
 | Taslak bg / fg / dot | #EEEAE8 / #3B3331 / #B9AFAB | #2B2523 / #D6CCC8 / #8C817D |
-| Onayda bg / fg / dot | #FDEBC8 / #B36A00 / #F2A93B | #3A2B12 / #F5B95A / #F2A93B |
+| Onayda bg / fg / dot | #FDEBC8 / #9C5C00 / #F2A93B | #3A2B12 / #F5B95A / #F2A93B |
 | Yayında bg / fg / dot | #DDF3E4 / #1E7A44 / #2F8A57 | #173222 / #7FD3A0 / #2F8A57 |
-| approve button (soft / solid) | #E7F5EC with text #1E7A44 / #2F8A57 | #173222 with text #7FD3A0 / #2F8A57 |
+| approve button (soft / solid) | #E7F5EC with text #1E7A44 / #2E8654 | #173222 with text #7FD3A0 / #2E8654 |
 | Sosyal Medya icon | #D6297A | #F06AA8 |
 | toast | #1C1716 | #2A2321 |
 

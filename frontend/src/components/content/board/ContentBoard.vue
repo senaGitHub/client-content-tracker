@@ -183,8 +183,9 @@ function onDrop(status: ContentStatus, event: DraggableEvent<ContentResponse>) {
 }
 
 // ---- Layout --------------------------------------------------------------------------------
-
 // Three columns don't fit on a phone: show one at a time and move cards with the card menu.
+// From md up the columns keep a 280px minimum and the board scrolls sideways when they don't fit
+// (tablets, small laptops next to the sidebar), so drag & drop stays available.
 const isDesktop = useMediaQuery('(min-width: 768px)')
 const mobileColumn = ref<ContentStatus>('DRAFT')
 const visibleStatuses = computed(() => (isDesktop.value ? STATUS_ORDER : [mobileColumn.value]))
@@ -250,7 +251,11 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
       </button>
     </div>
 
-    <div class="grid items-start gap-4 md:grid-cols-3" :aria-busy="loading">
+    <!-- Horizontal scroller from md up; the padding keeps the drop-target ring from being clipped. -->
+    <div
+      class="grid items-start gap-4 md:-m-1 md:grid-cols-[repeat(3,minmax(280px,1fr))] md:overflow-x-auto md:p-1 md:pb-3"
+      :aria-busy="loading"
+    >
       <section
         v-for="status in visibleStatuses"
         :key="status"
@@ -295,6 +300,10 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
             :disabled="!isDesktop"
             :force-fallback="true"
             :fallback-on-body="true"
+            :scroll="true"
+            :scroll-sensitivity="80"
+            :scroll-speed="14"
+            :bubble-scroll="true"
             filter=".is-pending"
             :prevent-on-filter="false"
             ghost-class="board-ghost"

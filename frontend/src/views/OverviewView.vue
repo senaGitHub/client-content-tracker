@@ -157,7 +157,7 @@ const clientOptions = computed(() =>
 
     <KpiTiles v-else :totals="totals" :metrics="dashboard.data.value?.metrics" />
 
-    <div class="grid items-start gap-[18px] min-[1340px]:grid-cols-[minmax(0,1fr)_360px]">
+    <div class="grid grid-cols-1 items-start gap-[18px] min-[1340px]:grid-cols-[minmax(0,1fr)_360px]">
       <div class="flex min-w-0 flex-col gap-[18px]">
         <BrandStrip v-if="!dashboard.error.value || dashboard.data.value" :clients="dashboard.data.value?.clients" />
         <ContentFeed

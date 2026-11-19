@@ -47,7 +47,7 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
       <ContentActionsMenu :item="item" :pending="pending" class="-mt-1 -mr-1" @open="emit('open')" @move="(s) => emit('move', s)" />
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
       <ContentTypeIcon :type="item.type" with-label class="min-w-0" />
       <span class="ml-auto shrink-0">
         <OverdueChip v-if="item.overdue" :due-date="item.dueDate" />

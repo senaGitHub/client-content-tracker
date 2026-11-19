@@ -291,15 +291,15 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
           <div class="min-w-0 flex-1">
             <button
               type="button"
-              class="block max-w-full truncate rounded-sm text-left text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              class="line-clamp-2 max-w-full rounded-sm text-left text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               @click="openEdit(item)"
             >
               {{ item.title }}
             </button>
-            <p class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-              <ContentTypeIcon :type="item.type" />
-              {{ item.client.name }} ·
-              <span :class="item.overdue ? 'font-semibold text-overdue-text' : ''">{{ dueHint(item) ?? formatShortDate(item.dueDate) }}</span>
+            <p class="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+              <ContentTypeIcon :type="item.type" class="mr-1 align-[-4px]" />
+              {{ item.client.name }}&nbsp;·
+              <span :class="cn('whitespace-nowrap', item.overdue && 'font-semibold text-overdue-text')">{{ dueHint(item) ?? formatShortDate(item.dueDate) }}</span>
             </p>
           </div>
           <StatusMenu :item="item" :pending="isPending(item.id)" @move="(s) => move(item, s)" />

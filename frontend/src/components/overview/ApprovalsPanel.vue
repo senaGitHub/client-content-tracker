@@ -68,7 +68,7 @@ const REVIEW_LINK ={ path: '/content', query: { view: 'list', status: 'IN_REVIEW
           <span v-else class="h-[50px] w-[58px] shrink-0 rounded-[9px] bg-muted" aria-hidden="true" />
 
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-bold">{{ item.title }}</p>
+            <p class="line-clamp-2 text-sm font-bold">{{ item.title }}</p>
             <p class="mt-px truncate text-xs text-muted-foreground">{{ item.client.name }} • {{ TYPE_LABELS[item.type] }}</p>
             <OverdueChip v-if="item.overdue" :due-date="item.dueDate" class="mt-1.5" />
             <span v-else class="mt-1.5 inline-block rounded-sm bg-muted px-2 py-0.5 text-xs font-semibold text-secondary-text">

@@ -88,7 +88,7 @@ const tiles = computed<Tile[]>(() => {
       :key="tile.key"
       :to="tile.to"
       :class="cn(
-        'flex items-center gap-3 rounded-card border px-4 py-3.5 shadow-card outline-none transition-[border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-ring/50',
+        'flex flex-col items-start gap-2.5 rounded-card border px-4 py-3.5 sm:flex-row sm:items-center sm:gap-3 shadow-card outline-none transition-[border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-ring/50',
         tile.alert
           ? 'border-overdue-border bg-overdue-soft text-overdue-text hover:border-overdue-text/40'
           : 'bg-card text-foreground hover:border-input',

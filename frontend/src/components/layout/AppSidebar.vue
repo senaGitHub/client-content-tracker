@@ -55,7 +55,7 @@ function isActive(key: NavItem['key']): boolean {
 
 <template>
   <div class="flex h-full flex-col gap-[34px] overflow-hidden bg-sidebar px-4 pt-[30px]">
-    <BrandMark class="px-3.5" />
+    <BrandMark class="self-start px-3.5" />
 
     <nav aria-label="Ana menü" class="flex flex-col gap-3">
       <ul class="flex flex-col gap-1.5">

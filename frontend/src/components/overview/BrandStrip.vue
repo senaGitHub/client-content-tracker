@@ -1,0 +1,79 @@
+<script setup lang="ts">
+import { PlusIcon } from '@lucide/vue'
+import { computed } from 'vue'
+import type { ClientResponse } from '@/api'
+import { Skeleton } from '@/components/ui/skeleton'
+import { clientLink } from '@/lib/content'
+
+const props = defineProps<{ clients?: ClientResponse[] }>()
+
+const SHOWN = 3
+
+/** The brands that need attention first: most overdue, then most waiting for approval, then the busiest. */
+const featured = computed(() =>
+  [...(props.clients ?? [])]
+    .sort(
+      (a, b) =>
+        b.counts.overdue - a.counts.overdue ||
+        b.counts.inReview - a.counts.inReview ||
+        b.counts.total - a.counts.total,
+    )
+    .slice(0, SHOWN),
+)
+</script>
+
+<template>
+  <section aria-labelledby="overview-brands">
+    <div class="mb-2.5 flex items-center justify-between">
+      <h2 id="overview-brands" class="text-lg font-bold">Markalar</h2>
+      <RouterLink to="/clients" class="rounded-sm text-[13px] font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50">
+        Tüm markalar →
+      </RouterLink>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-[repeat(3,minmax(0,1fr))_120px]">
+      <template v-if="!clients">
+        <Skeleton v-for="n in SHOWN" :key="n" class="h-[120px] rounded-2xl" />
+      </template>
+
+      <RouterLink
+        v-for="client in featured"
+        v-else
+        :key="client.id"
+        :to="clientLink(client.id)"
+        class="group relative block h-[120px] overflow-hidden rounded-2xl bg-muted text-white outline-none focus-visible:ring-3 focus-visible:ring-ring/60"
+      >
+        <img
+          v-if="client.coverImageUrl"
+          :src="client.coverImageUrl"
+          alt=""
+          loading="lazy"
+          class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+        <!-- Dark scrim so the name and chips stay readable on any photo. -->
+        <span class="absolute inset-0 bg-linear-to-b from-transparent from-30% to-black/70" aria-hidden="true" />
+        <span class="absolute right-3.5 bottom-3 left-4">
+          <span class="block truncate text-[17px] font-bold">{{ client.name }}</span>
+          <span class="mt-2 flex flex-wrap items-center gap-1.5">
+            <span v-if="client.counts.overdue" class="rounded-full bg-overdue px-2.5 py-0.5 text-xs font-semibold text-white">
+              {{ client.counts.overdue }} gecikmiş
+            </span>
+            <span v-if="client.counts.inReview" class="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-black/85">
+              {{ client.counts.inReview }} onayda
+            </span>
+            <span class="ml-auto text-xs opacity-90">{{ client.counts.total }} içerik</span>
+          </span>
+        </span>
+      </RouterLink>
+
+      <!-- The New brand dialog arrives with the Brands page; until then this opens that page. -->
+      <RouterLink
+        to="/clients"
+        class="flex h-[120px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-coral/35 bg-coral-soft/50 text-[13px] font-semibold text-coral-text outline-none transition-colors hover:border-coral/60 hover:bg-coral-soft focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <PlusIcon class="size-5 text-coral" :stroke-width="2.4" aria-hidden="true" />
+        Yeni marka
+      </RouterLink>
+    </div>
+  </section>
+</template>

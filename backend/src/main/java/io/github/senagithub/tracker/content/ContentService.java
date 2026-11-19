@@ -12,6 +12,7 @@ import io.github.senagithub.tracker.content.dto.ContentRequest;
 import io.github.senagithub.tracker.content.dto.ContentResponse;
 import io.github.senagithub.tracker.common.PageResponse;
 import io.github.senagithub.tracker.common.Paging;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,12 @@ public class ContentService {
     private static final Set<String> SORTABLE =
             Set.of("dueDate", "title", "status", "type", "createdAt", "updatedAt", "client.name");
 
+    /**
+     * Virtual sort key (?sort=priority): what needs attention first, see
+     * {@link ContentSpecifications#byPriority()}. It is used on its own; direction and other keys are ignored.
+     */
+    static final String PRIORITY_SORT = "priority";
+
     private final ContentRepository contentRepository;
     private final ClientRepository clientRepository;
     private final ActivityService activityService;
@@ -43,9 +50,17 @@ public class ContentService {
 
     public PageResponse<ContentResponse> list(ContentFilter filter, Pageable pageable) {
         LocalDate today = LocalDate.now();
-        Pageable page = Paging.sanitize(pageable, ContentSpecifications.BY_DUE_DATE, SORTABLE);
+        Specification<Content> spec = ContentSpecifications.matching(filter, today);
+        Pageable page;
+        if (pageable.getSort().getOrderFor(PRIORITY_SORT) != null) {
+            // The specification orders the query itself, so the page must stay unsorted.
+            page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            spec = spec.and(ContentSpecifications.byPriority());
+        } else {
+            page = Paging.sanitize(pageable, ContentSpecifications.BY_DUE_DATE, SORTABLE);
+        }
         return PageResponse.from(
-                contentRepository.findAll(ContentSpecifications.matching(filter, today), page),
+                contentRepository.findAll(spec, page),
                 content -> ContentResponse.from(content, today));
     }
 

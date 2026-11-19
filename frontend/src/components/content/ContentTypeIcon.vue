@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
+import type { Component, HTMLAttributes } from 'vue'
 import { FileTextIcon, GlobeIcon } from '@lucide/vue'
 import type { ContentType } from '@/api'
 import { TYPE_LABELS } from '@/lib/content'
+import { cn } from '@/lib/utils'
 
 // Inline type marker as in the mockups: a 16px icon, optionally followed by its label.
 // Social posts get their own colour; the others use the secondary text colour.
-const props = withDefaults(defineProps<{ type: ContentType; withLabel?: boolean }>(), { withLabel: false })
+const props = withDefaults(
+  defineProps<{ type: ContentType; withLabel?: boolean; class?: HTMLAttributes['class'] }>(),
+  { withLabel: false },
+)
 
 // Lucide 1.x has no brand icons, so the social icon is the mockups' rounded-square + lens glyph.
 const ICONS: Partial<Record<ContentType, Component>> = {
@@ -17,7 +21,7 @@ const ICONS: Partial<Record<ContentType, Component>> = {
 
 <template>
   <span
-    class="inline-flex shrink-0 items-center gap-1.5 text-xs text-secondary-text"
+    :class="cn('inline-flex shrink-0 items-center gap-1.5 text-xs text-secondary-text', props.class)"
     :title="props.withLabel ? undefined : TYPE_LABELS[props.type]"
   >
     <svg

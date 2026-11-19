@@ -1,4 +1,5 @@
 import { http } from './http'
+import type { WriteOptions } from './http'
 import type {
   ActivityResponse,
   ContentFilters,
@@ -23,7 +24,10 @@ export const contentsApi = {
     http.get<ActivityResponse[]>(`/contents/${id}/activity`, { signal }),
   create: (body: ContentRequest) => http.post<ContentResponse>('/contents', body),
   update: (id: number, body: ContentRequest) => http.put<ContentResponse>(`/contents/${id}`, body),
-  /** Rejects with ApiError status 409 when the transition is not allowed. */
-  changeStatus: (id: number, status: ContentStatus) =>
-    http.patch<ContentResponse>(`/contents/${id}/status`, { status }),
+  /**
+   * Rejects with ApiError status 409 when the transition is not allowed.
+   * `keepalive` lets a deferred approval still reach the server while the tab is closing.
+   */
+  changeStatus: (id: number, status: ContentStatus, options?: WriteOptions) =>
+    http.patch<ContentResponse>(`/contents/${id}/status`, { status }, options),
 }

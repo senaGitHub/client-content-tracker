@@ -45,6 +45,7 @@ Business rules:
 - GET /contents/{id}/activity → history, newest first (404 if the content doesn't exist)
 - Content responses carry client { id, name, coverImageUrl }; the cover is the content thumbnail.
 - Paged lists return { items, page (0-based), size, totalElements, totalPages, hasNext }; size defaults to 20, max 100; sort is whitelisted (unknown property → 400). overdue / dueThisWeek use the same specifications as the dashboard.
+- GET /contents also accepts `sort=priority` (used on its own): unpublished first by due date ascending (so overdue leads), then published, newest due date first. Used by the Overview feed and its "Tüm içerikler" link.
 - PATCH /contents/{id}/status  body: { "status": "..." }  → 409 on invalid transition
 - GET /dashboard returns:
   - `totals`: counts per status, plus overdue and total.

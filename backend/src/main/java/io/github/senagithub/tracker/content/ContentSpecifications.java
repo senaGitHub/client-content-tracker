@@ -1,6 +1,10 @@
 package io.github.senagithub.tracker.content;
 
 import io.github.senagithub.tracker.common.LikePattern;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -80,6 +84,36 @@ public final class ContentSpecifications {
             specs.add(dueThisWeek(today));
         }
         return Specification.allOf(specs);
+    }
+
+    /**
+     * Orders by what needs attention (the {@code ?sort=priority} key): unpublished work first by
+     * due date, so overdue items lead and the nearest deadlines follow; published items last,
+     * newest first. Adds no condition.
+     * <p>
+     * A CASE expression can't be written as a Spring Data {@link Sort}, so this sets the ORDER BY
+     * itself; the caller must pass an unsorted Pageable, or that sort would replace this one.
+     */
+    public static Specification<Content> byPriority() {
+        return (root, query, cb) -> {
+            // Spring runs the same specification for the page's count query, which must not be ordered.
+            if (query != null && !isCountQuery(query)) {
+                Predicate published = cb.equal(root.get("status"), ContentStatus.PUBLISHED);
+                Path<LocalDate> due = root.get("dueDate");
+                Expression<LocalDate> none = cb.nullLiteral(LocalDate.class);
+                query.orderBy(
+                        cb.asc(cb.<Integer>selectCase().when(published, 1).otherwise(0)),
+                        cb.asc(cb.<LocalDate>selectCase().when(published, none).otherwise(due)),
+                        cb.desc(cb.<LocalDate>selectCase().when(published, due).otherwise(none)),
+                        cb.asc(root.get("id")));
+            }
+            return cb.conjunction();
+        };
+    }
+
+    private static boolean isCountQuery(CriteriaQuery<?> query) {
+        Class<?> type = query.getResultType();
+        return Long.class.equals(type) || long.class.equals(type);
     }
 
     private static Specification<Content> notPublished() {

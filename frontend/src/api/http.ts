@@ -43,7 +43,12 @@ interface RequestOptions {
   query?: Query
   body?: unknown
   signal?: AbortSignal
+  /** Lets the request outlive the page (e.g. sent while the tab closes). */
+  keepalive?: boolean
 }
+
+/** Per-call options for writes. */
+export type WriteOptions = Pick<RequestOptions, 'keepalive'>
 
 function buildUrl(path: string, query?: Query): string {
   const url = `${BASE_URL}${path}`
@@ -70,6 +75,7 @@ async function request<T>(method: string, path: string, options: RequestOptions 
       },
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: options.signal,
+      keepalive: options.keepalive,
     })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
@@ -106,5 +112,6 @@ export const http = {
   get: <T>(path: string, options?: Omit<RequestOptions, 'body'>) => request<T>('GET', path, options),
   post: <T>(path: string, body: unknown) => request<T>('POST', path, { body }),
   put: <T>(path: string, body: unknown) => request<T>('PUT', path, { body }),
-  patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, { body }),
+  patch: <T>(path: string, body: unknown, options?: WriteOptions) =>
+    request<T>('PATCH', path, { ...options, body }),
 }

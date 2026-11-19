@@ -64,7 +64,7 @@ function isActive(key: NavItem['key']): boolean {
             :to="item.to"
             :aria-current="isActive(item.key) ? 'page' : undefined"
             :class="cn(
-              'flex items-center gap-4 rounded-xl px-5 py-3 text-base outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+              'flex items-center gap-3.5 rounded-xl px-4 py-3 text-base outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
               isActive(item.key)
                 ? 'bg-nav-active font-semibold text-coral-text'
                 : 'font-medium text-foreground hover:bg-coral-soft',
@@ -76,11 +76,11 @@ function isActive(key: NavItem['key']): boolean {
               <span
                 v-if="item.badge"
                 v-show="item.count > 0"
-                class="rounded-full bg-coral-solid px-2.5 py-0.5 text-[13px] font-bold text-coral-solid-foreground tabular-nums"
+                class="shrink-0 rounded-full bg-coral-solid px-2 py-0.5 text-[13px] font-bold text-coral-solid-foreground tabular-nums"
               >
                 {{ item.count }}<span class="sr-only"> içerik onay bekliyor</span>
               </span>
-              <span v-else class="text-[13px] font-normal text-muted-foreground tabular-nums">{{ item.count }}</span>
+              <span v-else class="shrink-0 text-[13px] font-normal text-muted-foreground tabular-nums">{{ item.count }}</span>
             </template>
           </RouterLink>
         </li>

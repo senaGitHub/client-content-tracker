@@ -42,7 +42,9 @@ public class ContentController {
 
     @GetMapping
     @Operation(summary = "List contents, optionally filtered; paged, sorted by due date unless ?sort= is given",
-            description = "Sortable by dueDate, title, status, type, createdAt, updatedAt, client.name. "
+            description = "Sortable by dueDate, title, status, type, createdAt, updatedAt, client.name, "
+                    + "or sort=priority on its own: unpublished first by due date (overdue leads), "
+                    + "then published, newest first. "
                     + "Page size defaults to 20 and is capped at 100.")
     public PageResponse<ContentResponse> list(
             @RequestParam(required = false) ContentStatus status,

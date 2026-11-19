@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: harbour
+  # Local secrets live in backend/.env (git-ignored). In production the same
+  # variables come from the host environment, so the file is optional.
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      # Neon free tier has a low connection limit; a small pool is plenty here.
+      maximum-pool-size: 5
+      # Neon suspends idle compute, so the first connection can take a few seconds.
+      connection-timeout: 30000
+  jpa:
+    # Schema is owned by Flyway; Hibernate only checks that entities match it.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+app:
+  seed:
+    enabled: true

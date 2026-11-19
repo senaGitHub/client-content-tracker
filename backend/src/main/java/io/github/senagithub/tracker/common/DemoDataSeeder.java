@@ -83,7 +83,8 @@ public class DemoDataSeeder implements ApplicationRunner {
                     new ContentSeed("Hammam ritual, step by step", BLOG_POST, "Website", PUBLISHED, -7, null),
                     new ContentSeed("Winter detox packages page", WEB_PAGE, "Website", IN_REVIEW, 4, null),
                     new ContentSeed("Therapist spotlight", SOCIAL_POST, "Instagram", DRAFT, 3, null),
-                    new ContentSeed("Couples spa day offer", SOCIAL_POST, "Facebook", PUBLISHED, -1, null),
+                    new ContentSeed("Couples spa day offer", SOCIAL_POST, "Facebook", PUBLISHED, 2,
+                            "Scheduled ahead of the weekend."),
                     new ContentSeed("Olive oil skincare: myths and facts", BLOG_POST, "Website", DRAFT, 11, null),
                     new ContentSeed("Gift card launch post", SOCIAL_POST, "Instagram", IN_REVIEW, -4,
                             "Client asked for a second visual option."))),
@@ -92,7 +93,7 @@ public class DemoDataSeeder implements ApplicationRunner {
                     new ContentSeed("Day trips from Antalya", WEB_PAGE, "Website", DRAFT, 8, null),
                     new ContentSeed("Düden waterfalls carousel", SOCIAL_POST, "Instagram", IN_REVIEW, 1, null),
                     new ContentSeed("A week on the Lycian Way", BLOG_POST, "Website", DRAFT, 20, null),
-                    new ContentSeed("Tour booking FAQ page", WEB_PAGE, "Website", PUBLISHED, -5, null),
+                    new ContentSeed("Tour booking FAQ page", WEB_PAGE, "Website", PUBLISHED, 4, null),
                     new ContentSeed("Weekend getaway deals", SOCIAL_POST, "Facebook", DRAFT, 5, null))),
             new ClientSeed("Medina Health", "Health tourism", "Ayşe Çelik", "ayse.celik@medinahealth.example", List.of(
                     new ContentSeed("Patient journey video", SOCIAL_POST, "YouTube", IN_REVIEW, 6, null),

@@ -7,7 +7,7 @@ import { useTheme } from '@/composables/useTheme'
 const props = withDefaults(defineProps<{ iconOnly?: boolean }>(), { iconOnly: false })
 
 const { isDark, toggleTheme } = useTheme()
-const label = computed(() => (isDark.value ? 'Switch to light theme' : 'Switch to dark theme'))
+const label = computed(() => (isDark.value ? 'Açık temaya geç' : 'Koyu temaya geç'))
 </script>
 
 <template>
@@ -22,15 +22,15 @@ const label = computed(() => (isDark.value ? 'Switch to light theme' : 'Switch t
     <SunIcon v-if="isDark" />
     <MoonIcon v-else />
   </Button>
-  <Button
+  <button
     v-else
-    variant="ghost"
-    class="h-9 w-full justify-start gap-3 px-3 text-muted-foreground hover:text-foreground"
+    type="button"
+    class="flex w-full items-center gap-3 rounded-lg px-5 py-2 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
     :aria-label="label"
     @click="toggleTheme"
   >
-    <SunIcon v-if="isDark" />
-    <MoonIcon v-else />
-    {{ isDark ? 'Light mode' : 'Dark mode' }}
-  </Button>
+    <SunIcon v-if="isDark" class="size-[18px]" aria-hidden="true" />
+    <MoonIcon v-else class="size-[18px]" aria-hidden="true" />
+    {{ isDark ? 'Açık tema' : 'Koyu tema' }}
+  </button>
 </template>

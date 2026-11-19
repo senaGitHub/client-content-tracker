@@ -5,9 +5,10 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { DraggableEvent } from 'vue-draggable-plus'
 import { toast } from 'vue-sonner'
-import { ApiError, contentsApi } from '@/api'
+import { contentsApi } from '@/api'
 import type { ContentFilters, ContentResponse, ContentStatus } from '@/api'
 import EmptyState from '@/components/common/EmptyState.vue'
+import { errorMessage } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useContentDialog } from '@/composables/useContentDialog'
@@ -74,8 +75,8 @@ async function loadAll() {
     })
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') return
-    error.value = e instanceof ApiError ? e.message : 'Something went wrong.'
-    toast.error('Could not load the board', { description: error.value })
+    error.value = errorMessage(e)
+    toast.error('Pano yüklenemedi', { description: error.value })
   } finally {
     if (controller === current) loading.value = false
   }
@@ -95,7 +96,7 @@ async function loadMore(status: ContentStatus) {
     column.hasNext = page.hasNext
     column.total = page.totalElements
   } catch (e) {
-    toast.error('Could not load more', { description: e instanceof ApiError ? e.message : 'Please try again.' })
+    toast.error('Daha fazla içerik yüklenemedi', { description: errorMessage(e) })
   } finally {
     column.loadingMore = false
   }
@@ -175,7 +176,7 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
 <template>
   <div v-if="error" role="alert" class="flex flex-col items-start gap-3 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between">
     <p class="flex items-start gap-2 text-sm text-muted-foreground">
-      <CircleAlertIcon class="mt-0.5 size-4 shrink-0 text-overdue" aria-hidden="true" />
+      <CircleAlertIcon class="mt-0.5 size-4 shrink-0 text-coral-text" aria-hidden="true" />
       <span><span class="font-medium text-foreground">The board could not be loaded.</span> {{ error }}</span>
     </p>
     <Button variant="outline" :disabled="loading" @click="loadAll">Try again</Button>

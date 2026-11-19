@@ -7,7 +7,7 @@ const options = ref<ClientRef[]>([])
 const loading = ref(false)
 let request: Promise<void> | null = null
 
-/** All clients as { id, name }, loaded once (the API caps a page at 100, plenty for an agency). */
+/** All clients as { id, name, coverImageUrl }, loaded once (the API caps a page at 100, plenty for an agency). */
 export function useClientOptions() {
   function load(force = false) {
     if (request && !force) return request
@@ -15,7 +15,7 @@ export function useClientOptions() {
     request = clientsApi
       .list({ size: 100 })
       .then((page) => {
-        options.value = page.items.map(({ id, name }) => ({ id, name }))
+        options.value = page.items.map(({ id, name, coverImageUrl }) => ({ id, name, coverImageUrl }))
       })
       .catch(() => {
         request = null // allow a retry next time

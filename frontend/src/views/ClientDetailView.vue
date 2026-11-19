@@ -9,11 +9,11 @@ defineProps<{ id: number }>()
 <template>
   <RouterLink
     to="/clients"
-    class="mb-4 inline-flex items-center gap-1.5 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+    class="mb-4 inline-flex items-center gap-1.5 rounded-md text-sm text-muted-foreground outline-none hover:text-coral-text focus-visible:ring-3 focus-visible:ring-ring/50"
   >
     <ArrowLeftIcon class="size-4" aria-hidden="true" />
-    Clients
+    Markalar
   </RouterLink>
-  <PageHeader :title="`Client #${id}`" />
-  <PlaceholderPanel text="Client details and their content are built in a later phase." />
+  <PageHeader :title="`Marka #${id}`" />
+  <PlaceholderPanel text="Marka detayı ve içerikleri Faz 12'de geliyor." />
 </template>

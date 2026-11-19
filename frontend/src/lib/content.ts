@@ -4,9 +4,9 @@ import type { ContentFilters, ContentStatus, ContentType } from '@/api'
 export const STATUS_ORDER: ContentStatus[] = ['DRAFT', 'IN_REVIEW', 'PUBLISHED']
 
 export const STATUS_LABELS: Record<ContentStatus, string> = {
-  DRAFT: 'Draft',
-  IN_REVIEW: 'In review',
-  PUBLISHED: 'Published',
+  DRAFT: 'Taslak',
+  IN_REVIEW: 'Onayda',
+  PUBLISHED: 'Yayında',
 }
 
 /** Tailwind classes backed by the status tokens in main.css. */
@@ -17,9 +17,9 @@ export const STATUS_STYLES: Record<ContentStatus, { badge: string; dot: string }
 }
 
 export const TYPE_LABELS: Record<ContentType, string> = {
-  SOCIAL_POST: 'Social post',
-  BLOG_POST: 'Blog post',
-  WEB_PAGE: 'Web page',
+  SOCIAL_POST: 'Sosyal Medya',
+  BLOG_POST: 'Blog Yazısı',
+  WEB_PAGE: 'Web Sayfası',
 }
 
 /**

@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button'
 
 <template>
   <div class="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
-    <p class="text-sm font-medium text-primary">404</p>
-    <h1 class="text-2xl font-semibold tracking-tight">Page not found</h1>
+    <p class="text-sm font-semibold text-coral-text">404</p>
+    <h1 class="text-[30px] font-extrabold tracking-[-0.025em]">Sayfa bulunamadı</h1>
     <p class="max-w-sm text-sm text-muted-foreground">
-      The page you are looking for does not exist or has moved.
+      Aradığınız sayfa yok ya da taşınmış.
     </p>
     <Button as-child class="mt-2">
-      <RouterLink to="/">Back to overview</RouterLink>
+      <RouterLink to="/">Genel Bakış'a dön</RouterLink>
     </Button>
   </div>
 </template>

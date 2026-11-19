@@ -6,72 +6,151 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * "Mediterranean, calm" design tokens.
- * Raw palette values live in :root / .dark; shadcn-vue components read the semantic
- * names (--background, --primary, ...), and @theme exposes them as Tailwind utilities.
+ * "Warm coral" design tokens (see CLAUDE.md → Design system).
+ * Raw values live in :root / .dark; shadcn-vue components read the semantic names
+ * (--background, --primary, ...), and @theme exposes everything as Tailwind utilities.
+ * Rules worth remembering:
+ *  - red (--overdue*) is for overdue only; validation errors use the dark coral (--destructive);
+ *  - coral text under 18px uses --coral-text (#E0623F is below 4.5:1 on white).
  */
 :root {
-  /* Base */
-  --background: #f4f1eb;
-  --foreground: #1e2326;
-  --card: #fffefc;
-  --card-foreground: #1e2326;
-  --popover: #fffefc;
-  --popover-foreground: #1e2326;
-  --primary: #1d5c67;
+  /* Surfaces */
+  --background: #fbf8f6;
+  --sidebar: #fcf3ef;
+  --card: #ffffff;
+  --card-foreground: #1c1716;
+  --popover: #ffffff;
+  --popover-foreground: #1c1716;
+  --column: #f7f1ee;
+  --border: #f1e8e4;
+  --input: #ece2de;
+  --divider: #f3ece9;
+
+  /* Text */
+  --foreground: #1c1716;
+  --text-secondary: #3b3331;
+  --muted-foreground: #6f6461;
+
+  /* shadcn roles */
+  --primary: #1c1716;
   --primary-foreground: #ffffff;
-  --secondary: #ede8df;
-  --secondary-foreground: #1e2326;
-  --muted: #ede8df;
-  --muted-foreground: #666a6c;
-  --accent: #ede8df;
-  --accent-foreground: #1e2326;
-  --destructive: #a3412e;
-  --border: #e5dfd4;
-  --input: #e5dfd4;
-  --ring: #1d5c67;
-  --radius: 0.625rem;
+  --secondary: #f3ece9;
+  --secondary-foreground: #1c1716;
+  --muted: #f3ece9;
+  --accent: #fde9e2; /* hover/focus background of menu items */
+  --accent-foreground: #1c1716;
+  --destructive: #c9502e; /* validation errors: dark coral, never red */
+  --ring: #e0623f;
+  --radius: 10px;
+
+  /* Coral accent */
+  --coral: #e0623f;
+  --coral-text: #c9502e;
+  --coral-soft: #fde9e2;
+  --nav-active: #fbddd4;
+  --coral-solid: #c9502e; /* badge background that keeps white text readable */
+  --coral-solid-foreground: #ffffff;
+  --logo-from: #f4895a;
+  --logo-to: #e0623f;
+
+  /* Overdue (the only red in the app) */
+  --overdue: #d92d20;
+  --overdue-text: #b42318;
+  --overdue-soft: #fff5f4;
+  --overdue-border: #f7c9c3;
 
   /* Status */
-  --status-draft-bg: #eef0f2;
-  --status-draft-fg: #4b5563;
-  --status-draft-dot: #94a3b8;
-  --status-review-bg: #f7eed9;
-  --status-review-fg: #8a5a0b;
-  --status-review-dot: #d9a441;
-  --status-published-bg: #e3efe6;
-  --status-published-fg: #2f6b47;
-  --status-published-dot: #5b9a70;
-  --overdue: #a3412e;
+  --status-draft-bg: #eeeae8;
+  --status-draft-fg: #3b3331;
+  --status-draft-dot: #b9afab;
+  --status-review-bg: #fdebc8;
+  --status-review-fg: #b36a00;
+  --status-review-dot: #f2a93b;
+  --status-published-bg: #ddf3e4;
+  --status-published-fg: #1e7a44;
+  --status-published-dot: #2f8a57;
+
+  /* Approve button */
+  --approve-soft: #e7f5ec;
+  --approve-soft-fg: #1e7a44;
+  --approve: #2f8a57;
+  --approve-foreground: #ffffff;
+
+  /* Content type + toast */
+  --type-social: #d6297a;
+  --toast: #1c1716;
+  --toast-foreground: #ffffff;
+  --toast-action-border: #4a403e;
+  --toast-success: #7fd3a0;
+  --toast-error: #f49a84;
+
+  /* Elevation */
+  --elev-card: 0 2px 10px rgba(60, 30, 20, 0.04);
+  --elev-pop: 0 14px 34px rgba(60, 30, 20, 0.16);
+  --elev-toast: 0 12px 30px rgba(28, 23, 22, 0.3);
 }
 
 .dark {
-  --background: #14181a;
-  --foreground: #e7e5e0;
-  --card: #1b2023;
-  --card-foreground: #e7e5e0;
-  --popover: #1b2023;
-  --popover-foreground: #e7e5e0;
-  --primary: #86bac4;
-  --primary-foreground: #0f1e22;
-  --secondary: #252b2f;
-  --secondary-foreground: #e7e5e0;
-  --muted: #252b2f;
-  --muted-foreground: #a0a6a8;
-  --accent: #252b2f;
-  --accent-foreground: #e7e5e0;
-  --destructive: #f0a08e;
-  --border: #2a3135;
-  --input: #2a3135;
-  --ring: #86bac4;
+  --background: #141110;
+  --sidebar: #1a1513;
+  --card: #1e1917;
+  --card-foreground: #f3edea;
+  --popover: #1e1917;
+  --popover-foreground: #f3edea;
+  --column: #191513;
+  --border: #2e2725;
+  --input: #3a3230;
+  --divider: #29221f;
 
-  --status-draft-bg: #262a31;
-  --status-draft-fg: #b4bbc5;
-  --status-review-bg: #3a3122;
-  --status-review-fg: #e8c07a;
-  --status-published-bg: #1f3428;
-  --status-published-fg: #8fd3a6;
-  --overdue: #f0a08e;
+  --foreground: #f3edea;
+  --text-secondary: #d6ccc8;
+  --muted-foreground: #a89d99;
+
+  --primary: #f3edea;
+  --primary-foreground: #1c1716;
+  --secondary: #29221f;
+  --secondary-foreground: #f3edea;
+  --muted: #29221f;
+  --accent: #3a221a;
+  --accent-foreground: #f3edea;
+  --destructive: #f5a58c;
+  --ring: #f08a6c;
+
+  --coral: #f08a6c;
+  --coral-text: #f5a58c;
+  --coral-soft: #3a221a;
+  --nav-active: #44271d;
+  --coral-solid: #f08a6c;
+  --coral-solid-foreground: #1c1716;
+
+  --overdue: #d92d20;
+  --overdue-text: #f97066;
+  --overdue-soft: #2c1614;
+  --overdue-border: #5a2620;
+
+  --status-draft-bg: #2b2523;
+  --status-draft-fg: #d6ccc8;
+  --status-draft-dot: #8c817d;
+  --status-review-bg: #3a2b12;
+  --status-review-fg: #f5b95a;
+  --status-review-dot: #f2a93b;
+  --status-published-bg: #173222;
+  --status-published-fg: #7fd3a0;
+  --status-published-dot: #2f8a57;
+
+  --approve-soft: #173222;
+  --approve-soft-fg: #7fd3a0;
+  --approve: #2f8a57;
+  --approve-foreground: #ffffff;
+
+  --type-social: #f06aa8;
+  --toast: #2a2321;
+  --toast-foreground: #f3edea;
+  --toast-action-border: #4f4442;
+
+  --elev-card: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --elev-pop: 0 14px 34px rgba(0, 0, 0, 0.5);
+  --elev-toast: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -80,10 +159,14 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-sidebar: var(--sidebar);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-column: var(--column);
+  --color-divider: var(--divider);
+  --color-secondary-text: var(--text-secondary);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -97,6 +180,22 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* text-coral-text, bg-coral-soft, bg-nav-active, ... */
+  --color-coral: var(--coral);
+  --color-coral-text: var(--coral-text);
+  --color-coral-soft: var(--coral-soft);
+  --color-nav-active: var(--nav-active);
+  --color-coral-solid: var(--coral-solid);
+  --color-coral-solid-foreground: var(--coral-solid-foreground);
+  --color-logo-from: var(--logo-from);
+  --color-logo-to: var(--logo-to);
+
+  /* bg-overdue (solid chip), text-overdue-text, bg-overdue-soft, border-overdue-border */
+  --color-overdue: var(--overdue);
+  --color-overdue-text: var(--overdue-text);
+  --color-overdue-soft: var(--overdue-soft);
+  --color-overdue-border: var(--overdue-border);
+
   /* bg-draft / text-draft-foreground / bg-draft-dot, same for review and published */
   --color-draft: var(--status-draft-bg);
   --color-draft-foreground: var(--status-draft-fg);
@@ -107,13 +206,31 @@
   --color-published: var(--status-published-bg);
   --color-published-foreground: var(--status-published-fg);
   --color-published-dot: var(--status-published-dot);
-  --color-overdue: var(--overdue);
 
-  --radius-sm: calc(var(--radius) * 0.8);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) * 1.2);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.6);
+  --color-approve: var(--approve);
+  --color-approve-foreground: var(--approve-foreground);
+  --color-approve-soft: var(--approve-soft);
+  --color-approve-soft-foreground: var(--approve-soft-fg);
+
+  --color-type-social: var(--type-social);
+  --color-toast: var(--toast);
+  --color-toast-foreground: var(--toast-foreground);
+  --color-toast-success: var(--toast-success);
+  --color-toast-error: var(--toast-error);
+
+  /* Radii: inputs/buttons 10, menus 12, kanban cards 14, cards 18, dialogs 20, chips full. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-card: 18px;
+  --radius-dialog: 20px;
+
+  /* shadow-card (very soft), shadow-pop (popovers, sheets, dialogs), shadow-toast */
+  --shadow-card: var(--elev-card);
+  --shadow-pop: var(--elev-pop);
+  --shadow-toast: var(--elev-toast);
 }
 
 @layer base {
@@ -130,4 +247,42 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "cv11", "ss01";
   }
+}
+
+/*
+ * Toasts are dark in both themes, with an outlined inline "Geri al" action (mockup 02).
+ * vue-sonner styles its parts through data attributes; the extra [data-sonner-toaster] makes
+ * these rules more specific than the library's own.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  gap: 12px;
+  padding: 14px 16px;
+  font-family: inherit;
+  box-shadow: var(--elev-toast);
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-title] {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-description] {
+  margin-top: 2px;
+  font-size: 13px;
+  color: color-mix(in oklab, var(--toast-foreground) 80%, transparent);
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button] {
+  height: auto;
+  padding: 6px 10px;
+  border: 1px solid var(--toast-action-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--toast-foreground);
+  font-size: 13px;
+  font-weight: 600;
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button]:hover {
+  background: color-mix(in oklab, var(--toast-foreground) 10%, transparent);
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button]:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--coral) 60%, transparent);
 }

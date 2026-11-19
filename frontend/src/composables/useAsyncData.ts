@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import type { Ref } from 'vue'
 import { toast } from 'vue-sonner'
-import { ApiError } from '@/api'
+import { errorMessage } from '@/lib/errors'
 
 interface Options {
   /** Load on mount (default true). */
@@ -44,7 +44,7 @@ export function useAsyncData<T>(
       data.value = await fetcher(current.signal)
     } catch (e) {
       if (isAbort(e)) return
-      error.value = e instanceof ApiError ? e.message : 'Something went wrong. Please try again.'
+      error.value = errorMessage(e)
       if (options.errorToast) toast.error(options.errorToast, { description: error.value })
     } finally {
       // Only the latest request may end the loading state.

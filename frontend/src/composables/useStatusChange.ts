@@ -1,12 +1,22 @@
 import { reactive } from 'vue'
 import { toast } from 'vue-sonner'
-import { ApiError, contentsApi } from '@/api'
+import { contentsApi } from '@/api'
 import type { ContentResponse, ContentStatus } from '@/api'
+import { refreshNavCounts } from '@/composables/useNavCounts'
 import { STATUS_LABELS } from '@/lib/content'
+import { statusChangeError } from '@/lib/errors'
+
+/** Toast text for a move, e.g. "Yaz kampanyası onaya gönderildi". */
+function movedMessage(title: string, from: ContentStatus, to: ContentStatus): string {
+  if (to === 'IN_REVIEW') return `${title} onaya gönderildi`
+  if (to === 'PUBLISHED') return `${title} yayınlandı`
+  if (from === 'IN_REVIEW' && to === 'DRAFT') return `${title} revizyona gönderildi`
+  return `${title} ${STATUS_LABELS[to]} durumuna taşındı`
+}
 
 /**
  * One place for every status change (board drag & drop, card menu, list menu):
- * show the move immediately, confirm it with the server, then offer Undo, or put the item
+ * show the move immediately, confirm it with the server, then offer "Geri al", or put the item
  * back and explain why if the server refuses (409) or can't be reached.
  *
  * `place(item)` is the view's way to show an item in its current state (e.g. move a card to
@@ -25,24 +35,22 @@ export function useStatusChange(place: (item: ContentResponse) => void) {
     try {
       const updated = await contentsApi.changeStatus(item.id, target)
       place(updated)
+      void refreshNavCounts()
       // Undo is a move back, so it is only offered when the rule allows it (never after publishing).
       const canUndo = !isUndo && updated.allowedTransitions.includes(original.status)
       toast.success(
-        isUndo ? `Moved back to ${STATUS_LABELS[target]}` : `Moved to ${STATUS_LABELS[target]}`,
+        isUndo ? `${updated.title} tekrar ${STATUS_LABELS[target]} durumunda` : movedMessage(updated.title, original.status, target),
         {
-          description: updated.title,
-          action: canUndo ? { label: 'Undo', onClick: () => move(updated, original.status, { isUndo: true }) } : undefined,
+          action: canUndo
+            ? { label: 'Geri al', onClick: () => move(updated, original.status, { isUndo: true }) }
+            : undefined,
         },
       )
     } catch (e) {
       place(original)
-      if (e instanceof ApiError && e.status === 409) {
-        toast.error('Status change not allowed', { description: e.message })
-      } else {
-        toast.error('Could not change the status', {
-          description: e instanceof ApiError ? e.message : 'Please try again.',
-        })
-      }
+      const { title, description } = statusChangeError(e)
+      // On the board the card snaps back, so say so (matches the 409 toast in the mockups).
+      toast.error(title, { description: `${description} İçerik eski yerine döndü.` })
     } finally {
       pending.delete(item.id)
     }

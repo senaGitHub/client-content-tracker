@@ -7,18 +7,28 @@ withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 <template>
   <RouterLink
     to="/"
-    class="flex items-center gap-3 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-    aria-label="Harbour, go to overview"
+    class="block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    aria-label="Harbour, Genel Bakış sayfasına git"
   >
-    <span
-      class="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-primary text-primary-foreground"
-      aria-hidden="true"
-    >
-      <AnchorIcon class="size-[18px]" :stroke-width="2" />
+    <span class="flex items-center gap-2.5">
+      <span
+        :class="[
+          'flex shrink-0 items-center justify-center bg-linear-140 from-logo-from to-logo-to text-white shadow-[0_4px_12px_color-mix(in_oklab,var(--coral)_30%,transparent)]',
+          compact ? 'size-8 rounded-[10px]' : 'size-[38px] rounded-xl',
+        ]"
+        aria-hidden="true"
+      >
+        <AnchorIcon :class="compact ? 'size-[17px]' : 'size-5'" :stroke-width="2.2" />
+      </span>
+      <span
+        :class="[
+          'font-extrabold tracking-[-0.03em] text-foreground',
+          compact ? 'text-xl' : 'text-[27px] leading-none',
+        ]"
+      >
+        Harbour<span class="text-coral">.</span>
+      </span>
     </span>
-    <span class="flex min-w-0 flex-col leading-tight">
-      <span class="text-[15px] font-semibold tracking-tight text-foreground">Harbour</span>
-      <span v-if="!compact" class="truncate text-xs text-muted-foreground">Client &amp; Content Tracker</span>
-    </span>
+    <span v-if="!compact" class="mt-1.5 ml-12 block text-xs text-secondary-text">Brand &amp; Content Workspace</span>
   </RouterLink>
 </template>

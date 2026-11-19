@@ -2,6 +2,7 @@
 import { EllipsisIcon, LoaderCircleIcon, PencilIcon } from '@lucide/vue'
 import type { ContentResponse, ContentStatus } from '@/api'
 import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
+import OverdueChip from '@/components/content/OverdueChip.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,18 +44,18 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
       <DropdownMenu v-else>
         <DropdownMenuTrigger
           class="relative z-10 -mt-1 -mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:bg-muted"
-          :aria-label="`Actions for ${item.title}`"
+          :aria-label="`${item.title} için işlemler`"
         >
           <EllipsisIcon class="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="min-w-48">
           <DropdownMenuItem @select="emit('open')">
             <PencilIcon />
-            Edit
+            Düzenle
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
-            {{ item.allowedTransitions.length ? 'Move to' : `${STATUS_LABELS[item.status]} is final` }}
+            {{ item.allowedTransitions.length ? 'Durumu değiştir' : `${STATUS_LABELS[item.status]} son durumdur` }}
           </DropdownMenuLabel>
           <DropdownMenuItem v-for="status in item.allowedTransitions" :key="status" @select="emit('move', status)">
             <span :class="cn('size-2 rounded-full', STATUS_STYLES[status].dot)" aria-hidden="true" />
@@ -68,12 +69,11 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
 
     <div class="mt-3 flex items-center justify-between gap-2">
       <span class="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-        <ContentTypeIcon :type="item.type" size="sm" />
-        <span v-if="item.channel" class="truncate">{{ item.channel }}</span>
+        <ContentTypeIcon :type="item.type" with-label />
+        <span v-if="item.channel" class="truncate">· {{ item.channel }}</span>
       </span>
-      <span :class="cn('shrink-0 text-xs', item.overdue ? 'font-medium text-overdue' : 'text-muted-foreground')">
-        {{ dueLabel(item) }}
-      </span>
+      <OverdueChip v-if="item.overdue" :due-date="item.dueDate" />
+      <span v-else class="shrink-0 text-xs text-muted-foreground">{{ dueLabel(item) }}</span>
     </div>
   </article>
 </template>

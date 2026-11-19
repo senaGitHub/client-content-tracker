@@ -118,7 +118,7 @@ function clearSearch() {
           query.due === option.value
             ? 'border border-border bg-card text-foreground'
             : 'text-muted-foreground hover:text-foreground',
-          query.due === option.value && option.value === 'overdue' && 'text-overdue',
+          query.due === option.value && option.value === 'overdue' && 'text-overdue-text',
         )"
         @click="emit('update', { due: option.value })"
       >

@@ -13,9 +13,11 @@ export interface StatusCounts {
   total: number
 }
 
+/** The client as embedded in a content response; its cover doubles as the content thumbnail. */
 export interface ClientRef {
   id: number
   name: string
+  coverImageUrl: string | null
 }
 
 export interface ClientResponse {
@@ -24,6 +26,7 @@ export interface ClientResponse {
   industry: string
   contactName: string
   contactEmail: string
+  coverImageUrl: string | null
   createdAt: string
   counts: StatusCounts
 }
@@ -33,6 +36,8 @@ export interface ClientRequest {
   industry: string
   contactName: string
   contactEmail: string
+  /** Optional; one of the bundled /images/covers/*.jpg files. */
+  coverImageUrl?: string | null
 }
 
 export interface ContentResponse {
@@ -90,31 +95,33 @@ export interface Page<T> {
   hasNext: boolean
 }
 
+/** Filters for GET /contents/status-counts: the list filters without status. */
+export type StatusCountFilters = Omit<ContentFilters, 'status'>
+
+/** One entry of a content's history, newest first. */
 export interface ActivityResponse {
   id: number
   action: ActivityAction
   fromStatus: ContentStatus | null
   toStatus: ContentStatus | null
   createdAt: string
-  content: { id: number; title: string }
-  client: ClientRef
 }
 
-export interface NeedsAttention {
-  overdue: ContentResponse[]
-  dueThisWeek: ContentResponse[]
-  awaitingApproval: ContentResponse[]
-}
-
-export interface WeekDay {
-  date: string
-  items: ContentResponse[]
+/** Real-data facts for the Overview. "This week" = the last 7 days, "last week" = the 7 before. */
+export interface DashboardMetrics {
+  createdThisWeek: number
+  publishedThisWeek: number
+  publishedLastWeek: number
+  /** Null when nothing is in review. */
+  oldestInReviewDays: number | null
+  /** Null when nothing is overdue. */
+  oldestOverdueDays: number | null
 }
 
 export interface DashboardResponse {
   totals: StatusCounts
-  needsAttention: NeedsAttention
-  week: WeekDay[]
+  metrics: DashboardMetrics
   clients: ClientResponse[]
-  recentActivity: ActivityResponse[]
+  /** The 5 longest-waiting items in review, longest first; the full count is totals.inReview. */
+  approvals: ContentResponse[]
 }

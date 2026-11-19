@@ -25,30 +25,30 @@ watch(() => route.fullPath, () => {
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col bg-background md:flex-row">
+  <div class="flex min-h-dvh flex-col bg-background lg:flex-row">
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:ring-3 focus:ring-ring/50"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:shadow-pop focus:ring-3 focus:ring-ring/50"
     >
-      Skip to content
+      İçeriğe geç
     </a>
 
-    <!-- Desktop sidebar: sits on the page background, next to the surface panel. -->
-    <aside class="sticky top-0 hidden h-dvh w-64 shrink-0 px-4 py-6 md:block">
+    <!-- Desktop sidebar. -->
+    <aside class="sticky top-0 hidden h-dvh w-[250px] shrink-0 lg:block">
       <AppSidebar />
     </aside>
 
-    <!-- Mobile top bar with a slide-in navigation drawer. -->
-    <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-background px-3 md:hidden">
+    <!-- Mobile / tablet top bar with a slide-in navigation drawer. -->
+    <header class="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-sidebar px-3 lg:hidden">
       <Sheet v-model:open="mobileNavOpen">
         <SheetTrigger as-child>
-          <Button variant="ghost" size="icon" aria-label="Open navigation">
+          <Button variant="ghost" size="icon" aria-label="Menüyü aç">
             <MenuIcon />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" class="w-72 border-border bg-background px-4 py-6 shadow-none">
-          <SheetTitle class="sr-only">Navigation</SheetTitle>
-          <SheetDescription class="sr-only">Move between Harbour pages.</SheetDescription>
+        <SheetContent side="left" class="w-[280px] gap-0 border-0 bg-sidebar p-0 sm:max-w-[280px]">
+          <SheetTitle class="sr-only">Menü</SheetTitle>
+          <SheetDescription class="sr-only">Harbour sayfaları arasında gezinin.</SheetDescription>
           <AppSidebar />
         </SheetContent>
       </Sheet>
@@ -56,11 +56,10 @@ watch(() => route.fullPath, () => {
       <ThemeToggle icon-only class="ml-auto" />
     </header>
 
-    <main id="main" class="flex min-w-0 flex-1 flex-col px-2 pb-2 md:py-3 md:pr-3 md:pl-0">
-      <div class="flex-1 rounded-xl border bg-card">
-        <div class="mx-auto w-full max-w-6xl px-5 py-6 sm:px-8 md:py-10 lg:px-10">
-          <RouterView />
-        </div>
+    <!-- Main content sits directly on the page background. -->
+    <main id="main" class="min-w-0 flex-1">
+      <div class="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-[30px] lg:pt-[26px] lg:pb-7">
+        <RouterView />
       </div>
     </main>
 

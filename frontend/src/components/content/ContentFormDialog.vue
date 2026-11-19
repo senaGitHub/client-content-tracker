@@ -3,6 +3,7 @@ import { addDays, format } from 'date-fns'
 import { nextTick, reactive, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { ApiError, contentsApi } from '@/api'
+import { errorMessage, fieldErrors } from '@/lib/errors'
 import type { ContentRequest, ContentType } from '@/api'
 import StatusBadge from '@/components/content/StatusBadge.vue'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { useClientOptions } from '@/composables/useClientOptions'
 import { notifyContentSaved, useContentDialog } from '@/composables/useContentDialog'
+import { refreshNavCounts } from '@/composables/useNavCounts'
 import { TYPE_LABELS } from '@/lib/content'
 
 type Field = 'clientId' | 'title' | 'type' | 'channel' | 'dueDate' | 'notes'
@@ -81,18 +83,17 @@ async function submit() {
   try {
     const editing = state.content
     const saved = editing ? await contentsApi.update(editing.id, body) : await contentsApi.create(body)
-    toast.success(editing ? 'Changes saved' : 'Content created', { description: saved.title })
+    toast.success(editing ? 'Değişiklikler kaydedildi' : 'İçerik oluşturuldu', { description: saved.title })
     notifyContentSaved(saved)
+    void refreshNavCounts()
     state.open = false
   } catch (e) {
     if (e instanceof ApiError && e.status === 400 && Object.keys(e.fieldErrors).length) {
       // The server is the source of truth for validation; show its messages under the fields.
-      Object.assign(errors, e.fieldErrors)
+      Object.assign(errors, fieldErrors(e))
       focusFirstError()
     } else {
-      toast.error('Could not save the content', {
-        description: e instanceof ApiError ? e.message : 'Please try again.',
-      })
+      toast.error('İçerik kaydedilemedi', { description: errorMessage(e) })
     }
   } finally {
     saving.value = false

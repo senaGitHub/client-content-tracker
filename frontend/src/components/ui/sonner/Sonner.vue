@@ -2,10 +2,10 @@
 import type { ToasterProps } from 'vue-sonner'
 
 import {
+  CircleAlertIcon,
   CircleCheckIcon,
   InfoIcon,
   Loader2Icon,
-  OctagonXIcon,
   TriangleAlertIcon,
   XIcon,
 } from '@lucide/vue'
@@ -13,6 +13,7 @@ import { reactiveOmit } from '@vueuse/core'
 import { cn } from '@/lib/utils'
 import { Toaster as Sonner } from 'vue-sonner'
 
+// Dark toasts in both themes ("Warm coral"); part styles live in main.css.
 const props = defineProps<ToasterProps>()
 const delegatedProps = reactiveOmit(props, 'class', 'toastOptions')
 </script>
@@ -21,38 +22,30 @@ const delegatedProps = reactiveOmit(props, 'class', 'toastOptions')
   <Sonner
     :class="cn('toaster group', props.class)"
     :style="{
-      '--normal-bg': 'var(--popover)',
-      '--normal-text': 'var(--popover-foreground)',
-      '--normal-border': 'var(--border)',
-      '--border-radius': 'var(--radius)',
-      '--gray2': 'hsl(var(--popover) / 0.9)',
-      '--gray3': 'var(--border)',
-      '--gray4': 'var(--border)',
-      '--gray5': 'var(--border)',
-      '--gray12': 'var(--popover-foreground)',
+      '--normal-bg': 'var(--toast)',
+      '--normal-text': 'var(--toast-foreground)',
+      '--normal-border': 'var(--toast)',
+      '--border-radius': '14px',
+      '--width': '380px',
     }"
-    :toast-options="props.toastOptions ?? {
-      classes: {
-        toast: 'rounded-xl',
-      },
-    }"
+    :toast-options="props.toastOptions"
     v-bind="delegatedProps"
   >
     <template #success-icon>
-      <CircleCheckIcon class="size-4" />
+      <CircleCheckIcon class="size-5 text-toast-success" />
     </template>
     <template #info-icon>
-      <InfoIcon class="size-4" />
+      <InfoIcon class="size-5" />
     </template>
     <template #warning-icon>
-      <TriangleAlertIcon class="size-4" />
+      <TriangleAlertIcon class="size-5 text-toast-error" />
     </template>
     <template #error-icon>
-      <OctagonXIcon class="size-4" />
+      <CircleAlertIcon class="size-5 text-toast-error" />
     </template>
     <template #loading-icon>
       <div>
-        <Loader2Icon class="size-4 animate-spin" />
+        <Loader2Icon class="size-5 animate-spin" />
       </div>
     </template>
     <template #close-icon>

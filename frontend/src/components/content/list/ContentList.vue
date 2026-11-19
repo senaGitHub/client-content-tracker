@@ -47,7 +47,7 @@ const request = computed(() => ({
 
 const { data, error, loading, reload } = useAsyncData(
   (signal) => contentsApi.list(request.value.filters, request.value.paging, signal),
-  { immediate: false, errorToast: 'Could not load the content list' },
+  { immediate: false, errorToast: 'İçerik listesi yüklenemedi' },
 )
 watch(() => JSON.stringify(request.value), reload, { immediate: true })
 onSaved(() => reload())
@@ -100,7 +100,7 @@ const isEmpty = computed(() => !!data.value && data.value.totalElements === 0)
 <template>
   <div v-if="error && !data" role="alert" class="flex flex-col items-start gap-3 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between">
     <p class="flex items-start gap-2 text-sm text-muted-foreground">
-      <CircleAlertIcon class="mt-0.5 size-4 shrink-0 text-overdue" aria-hidden="true" />
+      <CircleAlertIcon class="mt-0.5 size-4 shrink-0 text-coral-text" aria-hidden="true" />
       <span><span class="font-medium text-foreground">The list could not be loaded.</span> {{ error }}</span>
     </p>
     <Button variant="outline" :disabled="loading" @click="reload">Try again</Button>
@@ -174,7 +174,7 @@ const isEmpty = computed(() => !!data.value && data.value.totalElements === 0)
             </TableCell>
             <TableCell class="max-w-48 truncate text-muted-foreground">{{ item.client.name }}</TableCell>
             <TableCell>
-              <span :class="cn('block text-sm', item.overdue ? 'font-medium text-overdue' : 'text-foreground')">
+              <span :class="cn('block text-sm', item.overdue ? 'font-medium text-overdue-text' : 'text-foreground')">
                 {{ dueLabel(item) }}
               </span>
               <span class="block text-xs text-muted-foreground">{{ formatShortDate(item.dueDate) }}</span>
@@ -222,7 +222,7 @@ const isEmpty = computed(() => !!data.value && data.value.totalElements === 0)
         </div>
         <div class="mt-3 flex items-center justify-between gap-2">
           <StatusMenu :item="item" :pending="isPending(item.id)" @move="(status) => move(item, status)" />
-          <span :class="cn('text-xs', item.overdue ? 'font-medium text-overdue' : 'text-muted-foreground')">
+          <span :class="cn('text-xs', item.overdue ? 'font-medium text-overdue-text' : 'text-muted-foreground')">
             {{ dueLabel(item) }}
           </span>
         </div>

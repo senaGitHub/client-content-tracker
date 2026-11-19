@@ -12,6 +12,7 @@ import KpiTiles from '@/components/overview/KpiTiles.vue'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
+import { useClientDialog } from '@/composables/useClientDialog'
 import { useContentDialog } from '@/composables/useContentDialog'
 import { useDeferredApprove } from '@/composables/useDeferredApprove'
 import { refreshNavCounts } from '@/composables/useNavCounts'
@@ -20,6 +21,7 @@ import { formatHeaderDate } from '@/lib/format'
 
 const router = useRouter()
 const { openNew, onSaved } = useContentDialog()
+const { onSaved: onClientSaved } = useClientDialog()
 
 // ---- Header ---------------------------------------------------------------------------------
 
@@ -60,6 +62,8 @@ async function refreshAll() {
   await dashboard.reload()
 }
 onSaved(() => void refreshAll())
+// A new brand only changes the brand cards and the feed's brand filter, both from the dashboard.
+onClientSaved(() => void dashboard.reload())
 
 // ---- Approvals ------------------------------------------------------------------------------
 

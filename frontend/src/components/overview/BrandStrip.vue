@@ -3,9 +3,11 @@ import { PlusIcon } from '@lucide/vue'
 import { computed } from 'vue'
 import type { ClientResponse } from '@/api'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useClientDialog } from '@/composables/useClientDialog'
 import { clientLink } from '@/lib/content'
 
 const props = defineProps<{ clients?: ClientResponse[] }>()
+const { open: openNewClient } = useClientDialog()
 
 const SHOWN = 3
 
@@ -66,14 +68,14 @@ const featured = computed(() =>
         </span>
       </RouterLink>
 
-      <!-- The New brand dialog arrives with the Brands page; until then this opens that page. -->
-      <RouterLink
-        to="/clients"
+      <button
+        type="button"
         class="flex h-[120px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-coral/35 bg-coral-soft/50 text-[13px] font-semibold text-coral-text outline-none transition-colors hover:border-coral/60 hover:bg-coral-soft focus-visible:ring-3 focus-visible:ring-ring/50"
+        @click="openNewClient"
       >
         <PlusIcon class="size-5 text-coral" :stroke-width="2.4" aria-hidden="true" />
         Yeni marka
-      </RouterLink>
+      </button>
     </div>
   </section>
 </template>

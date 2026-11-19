@@ -3,6 +3,7 @@ import { CircleAlertIcon, FileTextIcon, SearchXIcon } from '@lucide/vue'
 import { computed, watch } from 'vue'
 import { contentsApi } from '@/api'
 import type { ContentFilters, ContentResponse, ContentStatus } from '@/api'
+import BrandCover from '@/components/client/BrandCover.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ContentActionsMenu from '@/components/content/ContentActionsMenu.vue'
 import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
@@ -40,6 +41,11 @@ const props = defineProps<{
   page: number
   sort?: string
   hasFilters: boolean
+  /**
+   * Inside one brand's page: no Marka or Güncelleme columns and no column sorting (always
+   * priority order), as in the brand detail mockup.
+   */
+  brand?: boolean
 }>()
 const emit = defineEmits<{
   update: [patch: Partial<ContentQuery>, options?: { keepPage?: boolean }]
@@ -65,7 +71,7 @@ const { move, isPending, publishingItems } = useStatusChange(place)
 
 const request = computed(() => ({
   filters: { ...props.filters, status: props.status },
-  paging: { page: props.page - 1, size: PAGE_SIZE, sort: props.sort ?? DEFAULT_SORT },
+  paging: { page: props.page - 1, size: PAGE_SIZE, sort: (!props.brand && props.sort) || DEFAULT_SORT },
 }))
 
 const { data, error, loading, reload } = useAsyncData(
@@ -131,19 +137,19 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
   <EmptyState
     v-else-if="isEmpty && hasFilters"
     :icon="SearchXIcon"
-    title="Bu filtrelere uyan içerik yok"
-    description="Başka bir durum, marka, tür ya da teslim tarihi deneyin veya filtreleri temizleyin."
+    :title="brand ? 'Bu durumda içerik yok' : 'Bu filtrelere uyan içerik yok'"
+    :description="brand ? 'Başka bir durum sekmesi seçin.' : 'Başka bir durum, marka, tür ya da teslim tarihi deneyin veya filtreleri temizleyin.'"
   >
-    <Button variant="outline" @click="emit('clear')">Filtreleri temizle</Button>
+    <Button variant="outline" @click="emit('clear')">{{ brand ? 'Tümünü göster' : 'Filtreleri temizle' }}</Button>
   </EmptyState>
 
   <EmptyState
     v-else-if="isEmpty"
     :icon="FileTextIcon"
     title="Henüz içerik yok"
-    description="Markalarınızdan biri için ilk paylaşımı ya da sayfayı planlayın."
+    :description="brand ? 'Bu marka için ilk paylaşımı ya da sayfayı planlayın.' : 'Markalarınızdan biri için ilk paylaşımı ya da sayfayı planlayın.'"
   >
-    <Button @click="openNew()">Yeni İçerik</Button>
+    <Button @click="openNew({ clientId: filters.clientId })">Yeni İçerik</Button>
   </EmptyState>
 
   <div
@@ -153,8 +159,17 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
   >
     <!-- Desktop: table -->
     <div class="hidden overflow-x-auto md:block">
-      <table class="w-full min-w-[900px] border-collapse text-sm">
-        <thead>
+      <table :class="cn('w-full border-collapse text-sm', brand ? 'min-w-[680px]' : 'min-w-[900px]')">
+        <thead v-if="brand">
+          <tr class="text-left text-[13px] font-bold text-secondary-text">
+            <th scope="col" class="px-2.5 py-3">İçerik</th>
+            <th scope="col" class="px-2.5 py-3">Tür</th>
+            <th scope="col" class="px-2.5 py-3">Teslim</th>
+            <th scope="col" class="px-2.5 py-3">Durum</th>
+            <th scope="col" class="w-12 px-2.5 py-3"><span class="sr-only">İşlemler</span></th>
+          </tr>
+        </thead>
+        <thead v-else>
           <tr class="text-left">
             <SortableHead label="İçerik" property="title" :sort="currentSort" @sort="onSort" />
             <SortableHead label="Marka" property="client.name" :sort="currentSort" @sort="onSort" />
@@ -174,11 +189,11 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
                 <Skeleton class="h-3.5 w-48" />
               </div>
             </td>
-            <td class="p-2.5"><Skeleton class="h-3.5 w-28" /></td>
+            <td v-if="!brand" class="p-2.5"><Skeleton class="h-3.5 w-28" /></td>
             <td class="p-2.5"><Skeleton class="h-3.5 w-24" /></td>
             <td class="p-2.5"><Skeleton class="h-3.5 w-20" /></td>
             <td class="p-2.5"><Skeleton class="h-6 w-20 rounded-full" /></td>
-            <td class="p-2.5"><Skeleton class="h-3.5 w-16" /></td>
+            <td v-if="!brand" class="p-2.5"><Skeleton class="h-3.5 w-16" /></td>
             <td class="p-2.5" />
           </tr>
         </tbody>
@@ -192,14 +207,12 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
           >
             <td class="max-w-[360px] p-2.5">
               <div class="flex items-center gap-3">
-                <img
-                  v-if="item.client.coverImageUrl"
-                  :src="item.client.coverImageUrl"
-                  alt=""
-                  loading="lazy"
-                  class="h-[30px] w-11 shrink-0 rounded-sm object-cover"
+                <BrandCover
+                  :name="item.client.name"
+                  :url="item.client.coverImageUrl"
+                  class="h-[30px] w-11 shrink-0 rounded-sm"
+                  initials-class="text-[11px]"
                 />
-                <span v-else class="h-[30px] w-11 shrink-0 rounded-sm bg-muted" aria-hidden="true" />
                 <!-- A real button so keyboard users can open the sheet; the whole row is clickable too. -->
                 <button
                   type="button"
@@ -211,7 +224,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
                 </button>
               </div>
             </td>
-            <td class="max-w-48 p-2.5 leading-snug break-words">{{ item.client.name }}</td>
+            <td v-if="!brand" class="max-w-48 p-2.5 leading-snug break-words">{{ item.client.name }}</td>
             <td class="p-2.5">
               <ContentTypeIcon :type="item.type" with-label class="gap-2 text-sm text-foreground" />
             </td>
@@ -224,7 +237,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
             <td class="p-2.5" @click.stop>
               <StatusMenu :item="item" :pending="isPending(item.id)" @move="(status) => move(item, status)" />
             </td>
-            <td class="p-2.5 text-[13px] whitespace-nowrap text-muted-foreground">
+            <td v-if="!brand" class="p-2.5 text-[13px] whitespace-nowrap text-muted-foreground">
               <time :datetime="item.updatedAt" :title="formatDateTime(item.updatedAt)">{{ formatUpdated(item.updatedAt) }}</time>
             </td>
             <td class="p-2.5 text-right" @click.stop>
@@ -253,12 +266,11 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
         </li>
       </template>
       <li v-for="item in data?.items" v-else :key="item.id" class="flex items-center gap-3 py-3">
-        <img
-          v-if="item.client.coverImageUrl"
-          :src="item.client.coverImageUrl"
-          alt=""
-          loading="lazy"
-          class="h-10 w-14 shrink-0 rounded-md object-cover"
+        <BrandCover
+          :name="item.client.name"
+          :url="item.client.coverImageUrl"
+          class="h-10 w-14 shrink-0 rounded-md"
+          initials-class="text-sm"
         />
         <div class="min-w-0 flex-1">
           <button
@@ -270,7 +282,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
           </button>
           <p class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
             <ContentTypeIcon :type="item.type" />
-            {{ item.client.name }} ·
+            <template v-if="!brand">{{ item.client.name }} ·</template>
             <span :class="item.overdue ? 'font-semibold text-overdue-text' : ''">{{ dueHint(item) ?? formatShortDate(item.dueDate) }}</span>
           </p>
         </div>

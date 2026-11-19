@@ -2,6 +2,7 @@
 import { MenuIcon } from '@lucide/vue'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import NewClientDialog from '@/components/client/NewClientDialog.vue'
 import ContentEditSheet from '@/components/content/ContentEditSheet.vue'
 import NewContentDialog from '@/components/content/NewContentDialog.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
@@ -67,5 +68,7 @@ watch(() => route.fullPath, () => {
     <!-- One shared New content dialog and Edit sheet; pages open them via useContentDialog(). -->
     <NewContentDialog />
     <ContentEditSheet />
+    <!-- Likewise one New brand dialog, opened via useClientDialog(). -->
+    <NewClientDialog />
   </div>
 </template>

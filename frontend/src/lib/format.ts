@@ -101,3 +101,19 @@ export function formatUpdated(value: string, now: Date = new Date()): string {
 export function isTodayDay(value: string): boolean {
   return isToday(parseDay(value))
 }
+
+// Ablative suffix ("-dan/-den/-tan/-ten") by how the number's last spoken word ends.
+const ONES_SUFFIX = ['', "'den", "'den", "'ten", "'ten", "'ten", "'dan", "'den", "'den", "'dan"] // bir … dokuz
+const TENS_SUFFIX = ['', "'dan", "'den", "'dan", "'tan", "'den", "'tan", "'ten", "'den", "'dan"] // on … doksan
+
+function ablative(n: number): string {
+  if (n % 10) return ONES_SUFFIX[n % 10]!
+  if (n % 100) return TENS_SUFFIX[(n % 100) / 10]!
+  return "'den" // yüz, bin
+}
+
+/** "1 Eylül 2026'dan beri" (the year carries the suffix). */
+export function formatSince(value: string): string {
+  const date = parseISO(value)
+  return `${format(date, 'd MMMM yyyy', { locale: tr })}${ablative(date.getFullYear())} beri`
+}

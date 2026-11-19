@@ -51,11 +51,16 @@ const { openNew, openEdit, onSaved } = useContentDialog()
 
 // ---- Moving cards --------------------------------------------------------------------------
 
-function byDueDate(a: ContentResponse, b: ContentResponse) {
-  return a.dueDate.localeCompare(b.dueDate) || a.id - b.id
+/**
+ * The API's ?sort=priority within one column: unpublished columns by due date (overdue first),
+ * Yayında newest due date first; id breaks ties.
+ */
+function byPriority(a: ContentResponse, b: ContentResponse) {
+  const due = a.status === 'PUBLISHED' ? b.dueDate.localeCompare(a.dueDate) : a.dueDate.localeCompare(b.dueDate)
+  return due || a.id - b.id
 }
 
-/** Shows `item` in the column of its status, sorted by due date, and keeps totals in step. */
+/** Shows `item` in the column of its status, in priority order, and keeps totals in step. */
 function show(item: ContentResponse) {
   const previous = statusById.get(item.id)
   if (previous && previous !== item.status) {
@@ -69,7 +74,7 @@ function show(item: ContentResponse) {
     if (index !== -1) list.splice(index, 1)
   }
   const target = columns[item.status].items
-  const at = target.findIndex((other) => byDueDate(item, other) < 0)
+  const at = target.findIndex((other) => byPriority(item, other) < 0)
   target.splice(at === -1 ? target.length : at, 0, item)
 }
 
@@ -86,7 +91,7 @@ const { move, isPending, publishingItems } = useStatusChange(place)
 let controller: AbortController | null = null
 
 function fetchColumn(status: ContentStatus, page: number, signal?: AbortSignal) {
-  return contentsApi.list({ ...props.filters, status }, { page, size: PAGE_SIZE }, signal)
+  return contentsApi.list({ ...props.filters, status }, { page, size: PAGE_SIZE, sort: 'priority' }, signal)
 }
 
 async function loadAll() {

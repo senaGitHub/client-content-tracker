@@ -198,15 +198,15 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
     <div v-else :class="cn('rounded-card border bg-card shadow-card transition-opacity', rows.loading.value && rows.data.value && 'opacity-60')" :aria-busy="rows.loading.value">
       <!-- Desktop: table -->
       <div class="@container hidden px-3 pt-0.5 md:block">
-        <!-- Fixed layout: the columns share the width the panel leaves, and long titles truncate instead of pushing the actions out of view. -->
+        <!-- Fixed layout: the columns share the width the panel leaves; long titles wrap to two lines instead of pushing the actions out of view. -->
         <table class="w-full table-fixed border-collapse text-sm">
           <thead>
             <tr class="text-left text-[13px] font-bold text-secondary-text">
               <th scope="col" class="px-2.5 py-3">İçerik</th>
-              <th scope="col" class="w-[18%] px-2.5 py-3">Marka</th>
+              <th scope="col" class="w-[152px] px-2.5 py-3">Marka</th>
               <th scope="col" class="w-12 px-2.5 py-3 @4xl:w-36">Tür</th>
               <th scope="col" class="w-[92px] px-2.5 py-3">Teslim</th>
-              <th scope="col" class="w-32 px-2.5 py-3">Durum</th>
+              <th scope="col" class="w-28 px-2.5 py-3">Durum</th>
               <th scope="col" class="w-[100px] px-1.5 py-3"><span class="sr-only">İşlemler</span></th>
             </tr>
           </thead>
@@ -242,10 +242,10 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
                     class="h-[30px] w-11 shrink-0 rounded-sm object-cover"
                   />
                   <span v-else class="h-[30px] w-11 shrink-0 rounded-sm bg-muted" aria-hidden="true" />
-                  <span class="min-w-0 truncate font-semibold" :title="item.title">{{ item.title }}</span>
+                  <span class="line-clamp-2 min-w-0 leading-snug font-semibold break-words" :title="item.title">{{ item.title }}</span>
                 </div>
               </td>
-              <td class="truncate p-2.5" :title="item.client.name">{{ item.client.name }}</td>
+              <td class="p-2.5 leading-snug break-words">{{ item.client.name }}</td>
               <td class="p-2.5">
                 <!-- The label needs room; in a narrow panel the icon alone (with a tooltip) stands in for it. -->
                 <ContentTypeIcon :type="item.type" with-label class="hidden max-w-full gap-2 text-sm text-foreground @4xl:inline-flex" />

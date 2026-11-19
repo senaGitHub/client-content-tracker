@@ -18,17 +18,26 @@ interface PendingApproval {
 }
 
 interface Options {
-  /** Runs after the server accepted the approval; awaited so the item stays hidden until fresh data arrives. */
-  onCommitted?: () => Promise<unknown> | void
-  /** Runs when the server refused or could not be reached; the item is shown again. */
-  onFailed?: () => void
+  /** Runs right after "Onayla", before anything is sent: show the item as published. */
+  onStart?: (item: ContentResponse) => void
+  /** "Geri al" was used in time: nothing was sent, show the item as it was. */
+  onCancel?: (item: ContentResponse) => void
+  /** The server accepted; awaited so callers can keep the item hidden until fresh data arrives. */
+  onCommitted?: (updated: ContentResponse) => Promise<unknown> | void
+  /** The server refused or could not be reached: show the item as it was. */
+  onFailed?: (item: ContentResponse) => void
+  /** Appended to the error toast, e.g. where the item went back to. */
+  failureHint?: string
 }
 
 /**
- * "Onayla" with a real undo. Publishing is final (the status rule has no way back from PUBLISHED),
- * so instead of sending the PATCH and undoing it, the PATCH waits ~5 s. "Geri al" cancels the timer
- * and nothing is ever sent. Leaving the page or closing the tab sends whatever is still waiting,
- * so an approval is never silently lost.
+ * Publishing with a real undo. Publishing is final (the status rule has no way back from
+ * PUBLISHED), so instead of sending the PATCH and undoing it, the PATCH waits ~5 s. "Geri al"
+ * cancels the timer and nothing is ever sent. Leaving the page (unmount) or closing the tab sends
+ * whatever is still waiting, so an approval is never silently lost.
+ *
+ * Every publish in the app goes through here: directly for the Overview approvals panel, and via
+ * useStatusChange for the board, the list, the feed and the edit sheet.
  */
 export function useDeferredApprove(options: Options = {}) {
   const pending = reactive(new Map<number, PendingApproval>())
@@ -43,6 +52,7 @@ export function useDeferredApprove(options: Options = {}) {
     })
     const timer = setTimeout(() => void send(item.id), APPROVE_DELAY_MS)
     pending.set(item.id, { item, phase: 'waiting', timer, toastId })
+    options.onStart?.(item)
   }
 
   function cancel(id: number) {
@@ -51,6 +61,7 @@ export function useDeferredApprove(options: Options = {}) {
     clearTimeout(entry.timer)
     pending.delete(id)
     toast(`${entry.item.title} tekrar Onayda durumunda`)
+    if (alive) options.onCancel?.(entry.item)
   }
 
   async function send(id: number, { keepalive = false } = {}) {
@@ -61,13 +72,14 @@ export function useDeferredApprove(options: Options = {}) {
     // A toast that is still open (e.g. paused by hovering) must not offer an undo that no longer works.
     toast.dismiss(entry.toastId)
     try {
-      await contentsApi.changeStatus(id, 'PUBLISHED', { keepalive })
+      const updated = await contentsApi.changeStatus(id, 'PUBLISHED', { keepalive })
       void refreshNavCounts()
-      if (alive) await options.onCommitted?.()
+      if (alive) await options.onCommitted?.(updated)
     } catch (e) {
       const { title, description } = statusChangeError(e)
-      toast.error(title, { description: `${entry.item.title}: ${description}` })
-      if (alive) options.onFailed?.()
+      const hint = options.failureHint ? ` ${options.failureHint}` : ''
+      toast.error(title, { description: `${entry.item.title}: ${description}${hint}` })
+      if (alive) options.onFailed?.(entry.item)
     } finally {
       pending.delete(id)
     }
@@ -80,7 +92,7 @@ export function useDeferredApprove(options: Options = {}) {
 
   // Closing the tab or navigating away from the site: keepalive lets the request finish.
   useEventListener(window, 'pagehide', () => flush({ keepalive: true }))
-  // Leaving the Overview inside the app.
+  // Leaving the view inside the app.
   onBeforeUnmount(() => {
     flush({ keepalive: true })
     alive = false
@@ -91,6 +103,7 @@ export function useDeferredApprove(options: Options = {}) {
 
   return {
     approve,
+    flush,
     isPending: (id: number) => pending.has(id),
     pendingItems,
   }

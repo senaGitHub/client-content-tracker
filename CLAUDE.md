@@ -119,8 +119,8 @@ Photos:
 
 Redesign decisions:
 - Overview greeting changes with the time of day. It has no name and no avatar, because there is no login.
-- "Onayla" in the approvals panel sends its PATCH after about 5 seconds. "Geri al" cancels it, so nothing is sent. A pending PATCH is flushed when the user leaves the page or closes the tab. The status rule stays strict.
-- The edit sheet also has Tür and Kanal fields.
+- Publishing cannot be undone on the server, so every move to Yayında is deferred, wherever it starts: "Onayla" in the approvals panel, the edit sheet, board drag & drop, and the list and feed menus. The PATCH is sent after about 5 seconds, and "Geri al" cancels it, so nothing is sent. A pending PATCH is flushed when the user leaves the page or closes the tab. Every other move is sent at once, and its "Geri al" sends the reverse move. The status rule stays strict.
+- The edit sheet also has Tür and Kanal fields. Its status buttons apply at once and are separate from "Değişiklikleri kaydet". The PUT body has no status, so saving the form never overwrites a status change.
 - "Bu hafta" means the last 7 days, "geçen hafta" the 7 days before that.
 - The old Overview sections ("This week" strip and "Recent activity") are removed from the UI and from the API.
 

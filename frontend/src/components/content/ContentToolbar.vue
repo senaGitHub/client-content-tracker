@@ -1,37 +1,37 @@
 <script setup lang="ts">
 import { SearchIcon, XIcon } from '@lucide/vue'
 import { useDebounceFn } from '@vueuse/core'
-import { ref, watch } from 'vue'
-import type { ContentStatus, ContentType } from '@/api'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { computed, ref, watch } from 'vue'
+import type { ContentType } from '@/api'
+import FilterSelect from '@/components/content/FilterSelect.vue'
 import { useClientOptions } from '@/composables/useClientOptions'
 import type { ContentQuery, DueFilter } from '@/composables/useContentQuery'
-import { STATUS_LABELS, STATUS_ORDER, TYPE_LABELS } from '@/lib/content'
-import { cn } from '@/lib/utils'
+import { TYPE_LABELS, TYPE_ORDER } from '@/lib/content'
 
-const props = defineProps<{ query: ContentQuery; showStatus: boolean; hasFilters: boolean }>()
+const props = defineProps<{
+  query: ContentQuery
+  hasFilters: boolean
+  /** "N sonuç" on the right; undefined while unknown. */
+  resultCount?: number
+}>()
 const emit = defineEmits<{ update: [patch: Partial<ContentQuery>]; clear: [] }>()
 
 const { clients } = useClientOptions()
 
-// Select items can't have an empty value, so "no filter" is the 'all' sentinel.
-const ALL = 'all'
-const TYPES = Object.keys(TYPE_LABELS) as ContentType[]
-const DUE_OPTIONS: { value: DueFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'overdue', label: 'Overdue' },
-  { value: 'week', label: 'Due this week' },
+const clientOptions = computed(() => clients.value.map((c) => ({ value: String(c.id), label: c.name })))
+const TYPE_OPTIONS = TYPE_ORDER.map((t) => ({ value: t, label: TYPE_LABELS[t] }))
+const DUE_OPTIONS = [
+  { value: 'overdue', label: 'Geciken' },
+  { value: 'week', label: 'Bu hafta' },
 ]
 
 // Typing updates the box at once; the URL (and the request) follow after a short pause.
 const search = ref(props.query.q)
 const commitSearch = useDebounceFn((value: string) => emit('update', { q: value }), 300)
 watch(search, (value) => {
-  if (value !== props.query.q) commitSearch(value)
+  if (value !== props.query.q) void commitSearch(value)
 })
-// Keep the box in sync when the URL changes from outside (Back button, Clear filters).
+// Keep the box in sync when the URL changes from outside (Back button, Filtreleri temizle).
 watch(() => props.query.q, (value) => {
   if (value !== search.value) search.value = value
 })
@@ -43,92 +43,69 @@ function clearSearch() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center" role="search" aria-label="Filter content">
-    <div class="relative w-full lg:w-64">
-      <SearchIcon class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-      <Input
+  <div role="search" aria-label="İçerikleri filtrele" class="flex flex-wrap items-center gap-3">
+    <label
+      class="flex h-10 w-full items-center gap-2.5 rounded-lg border border-input bg-card px-3.5 transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 sm:w-[260px]"
+    >
+      <SearchIcon class="size-[17px] shrink-0 text-foreground" aria-hidden="true" />
+      <span class="sr-only">İçerik ara</span>
+      <input
         v-model="search"
         type="search"
-        class="h-9 pr-8 pl-8 [&::-webkit-search-cancel-button]:hidden"
-        placeholder="Search titles"
-        aria-label="Search titles"
+        placeholder="İçerik ara..."
+        class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
         @keydown.esc="clearSearch"
       />
       <button
         v-if="search"
         type="button"
-        class="absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-        aria-label="Clear search"
+        class="-mr-1.5 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        aria-label="Aramayı temizle"
         @click="clearSearch"
       >
         <XIcon class="size-3.5" />
       </button>
+    </label>
+
+    <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap">
+      <FilterSelect
+        :model-value="query.clientId ? String(query.clientId) : undefined"
+        :options="clientOptions"
+        all-label="Tüm Markalar"
+        label="Marka"
+        class="sm:max-w-56"
+        @update:model-value="(v) => emit('update', { clientId: v ? Number(v) : undefined })"
+      />
+      <FilterSelect
+        :model-value="query.type"
+        :options="TYPE_OPTIONS"
+        all-label="Tüm Türler"
+        label="Tür"
+        @update:model-value="(v) => emit('update', { type: v as ContentType | undefined })"
+      />
+      <FilterSelect
+        :model-value="query.due === 'all' ? undefined : query.due"
+        :options="DUE_OPTIONS"
+        all-label="Teslim: Tümü"
+        prefix="Teslim: "
+        label="Teslim"
+        :tone="query.due === 'overdue' ? 'overdue' : 'coral'"
+        class="col-span-2 sm:col-span-1"
+        @update:model-value="(v) => emit('update', { due: (v as DueFilter | undefined) ?? 'all' })"
+      />
     </div>
 
-    <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-      <Select
-        :model-value="query.clientId ? String(query.clientId) : ALL"
-        @update:model-value="(v) => emit('update', { clientId: v === ALL ? undefined : Number(v) })"
-      >
-        <SelectTrigger class="h-9 w-full sm:w-44" aria-label="Client">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem :value="ALL">All clients</SelectItem>
-          <SelectItem v-for="client in clients" :key="client.id" :value="String(client.id)">{{ client.name }}</SelectItem>
-        </SelectContent>
-      </Select>
+    <button
+      v-if="hasFilters"
+      type="button"
+      class="rounded-md px-1 text-sm font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50"
+      @click="emit('clear')"
+    >
+      Filtreleri temizle
+    </button>
 
-      <Select
-        :model-value="query.type ?? ALL"
-        @update:model-value="(v) => emit('update', { type: v === ALL ? undefined : (v as ContentType) })"
-      >
-        <SelectTrigger class="h-9 w-full sm:w-36" aria-label="Type">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem :value="ALL">All types</SelectItem>
-          <SelectItem v-for="type in TYPES" :key="type" :value="type">{{ TYPE_LABELS[type] }}</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select
-        v-if="showStatus"
-        :model-value="query.status ?? ALL"
-        @update:model-value="(v) => emit('update', { status: v === ALL ? undefined : (v as ContentStatus) })"
-      >
-        <SelectTrigger class="h-9 w-full sm:w-36" aria-label="Status">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem :value="ALL">All statuses</SelectItem>
-          <SelectItem v-for="status in STATUS_ORDER" :key="status" :value="status">{{ STATUS_LABELS[status] }}</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-
-    <div role="group" aria-label="Due date" class="inline-flex h-9 w-full items-center rounded-lg bg-muted p-0.5 sm:w-fit">
-      <button
-        v-for="option in DUE_OPTIONS"
-        :key="option.value"
-        type="button"
-        :aria-pressed="query.due === option.value"
-        :class="cn(
-          'h-full flex-1 rounded-md px-3 text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex-none',
-          query.due === option.value
-            ? 'border border-border bg-card text-foreground'
-            : 'text-muted-foreground hover:text-foreground',
-          query.due === option.value && option.value === 'overdue' && 'text-overdue-text',
-        )"
-        @click="emit('update', { due: option.value })"
-      >
-        {{ option.label }}
-      </button>
-    </div>
-
-    <Button v-if="hasFilters" variant="ghost" class="h-9 self-start text-muted-foreground lg:self-auto" @click="emit('clear')">
-      <XIcon />
-      Clear filters
-    </Button>
+    <span v-if="hasFilters && resultCount !== undefined" class="ml-auto text-[13px] text-muted-foreground tabular-nums" aria-live="polite">
+      {{ resultCount }} sonuç
+    </span>
   </div>
 </template>

@@ -13,8 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
 import { useContentDialog } from '@/composables/useContentDialog'
 import { useStatusChange } from '@/composables/useStatusChange'
+import type { PlacePhase } from '@/composables/useStatusChange'
 import { STATUS_ORDER, STATUS_LABELS, TYPE_LABELS } from '@/lib/content'
-import { daysUntil, dueLabel, formatShortDate } from '@/lib/format'
+import { dueHint, formatShortDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
@@ -78,11 +79,11 @@ const tabs = computed(() => {
 
 // ---- Inline status changes (rows keep their place, like the content list) ---------------------
 
-function place(item: ContentResponse) {
+// "Yayına al" waits ~5 s with "Geri al" (see useStatusChange); other moves go at once.
+function place(item: ContentResponse, phase: PlacePhase) {
   const page = rows.data.value
   if (page) rows.data.value = { ...page, items: page.items.map((row) => (row.id === item.id ? item : row)) }
-  // The optimistic step has no next moves yet; anything else is the server's final word.
-  if (item.allowedTransitions.length > 0) {
+  if (phase !== 'optimistic') {
     void counts.reload()
     emit('changed')
   }
@@ -90,14 +91,6 @@ function place(item: ContentResponse) {
 const { move, isPending } = useStatusChange(place)
 
 // ---- Display helpers ------------------------------------------------------------------------
-
-/** Second line under the due date: "2 gün gecikti" (red), or "Bugün" / "Yarın" / weekday when it is close. */
-function dueHint(item: ContentResponse): string | undefined {
-  if (item.overdue) return dueLabel(item)
-  if (item.status === 'PUBLISHED') return undefined
-  const days = daysUntil(item.dueDate)
-  return days >= 0 && days < 7 ? dueLabel(item) : undefined
-}
 
 const allLink = computed<RouteLocationRaw>(() => {
   const query: Record<string, string> = { view: 'list', sort: SORT }

@@ -1,32 +1,37 @@
 import { onBeforeUnmount, reactive } from 'vue'
 import type { ContentResponse } from '@/api'
 
-interface DialogState {
-  open: boolean
-  /** Set when editing; null for "New content". */
-  content: ContentResponse | null
-  /** Preselected client for new content (e.g. from a client page). */
+interface EditorState {
+  /** "Yeni İçerik" dialog. */
+  newOpen: boolean
+  /** Preselected brand for new content (e.g. from a brand page). */
   clientId: number | null
+  /** Edit sheet. */
+  editOpen: boolean
+  /** The item in the edit sheet; kept up to date by the sheet's own status changes. */
+  content: ContentResponse | null
 }
 
-// A single dialog instance lives in the app layout; any page can open it.
-const state = reactive<DialogState>({ open: false, content: null, clientId: null })
+// One New dialog and one Edit sheet live in the app layout; any page can open them.
+const state = reactive<EditorState>({ newOpen: false, clientId: null, editOpen: false, content: null })
 const savedListeners = new Set<(item: ContentResponse) => void>()
 
 export function useContentDialog() {
   function openNew(options: { clientId?: number } = {}) {
-    state.content = null
     state.clientId = options.clientId ?? null
-    state.open = true
+    state.newOpen = true
   }
 
+  /** Opens the right-side edit sheet for this item. */
   function openEdit(content: ContentResponse) {
     state.content = content
-    state.clientId = null
-    state.open = true
+    state.editOpen = true
   }
 
-  /** Lets the page that is showing content refresh itself after a save. Unregisters on unmount. */
+  /**
+   * Lets the page that is showing content refresh itself after a create, an edit, or a status
+   * change made in the sheet (server-confirmed only). Unregisters on unmount.
+   */
   function onSaved(listener: (item: ContentResponse) => void) {
     savedListeners.add(listener)
     onBeforeUnmount(() => savedListeners.delete(listener))

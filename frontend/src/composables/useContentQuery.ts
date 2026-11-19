@@ -18,7 +18,7 @@ export interface ContentQuery {
   due: DueFilter
   /** One-based, as shown to people. */
   page: number
-  /** e.g. 'title,asc'; undefined = server default (due date). */
+  /** e.g. 'title,asc'; undefined = the list's default, 'priority' (see ContentList). */
   sort?: string
 }
 

@@ -8,19 +8,24 @@ import { toast } from 'vue-sonner'
 import { contentsApi } from '@/api'
 import type { ContentFilters, ContentResponse, ContentStatus } from '@/api'
 import EmptyState from '@/components/common/EmptyState.vue'
-import { errorMessage } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useContentDialog } from '@/composables/useContentDialog'
-import { useStatusChange } from '@/composables/useStatusChange'
+import { asPublishing, useStatusChange } from '@/composables/useStatusChange'
+import type { PlacePhase } from '@/composables/useStatusChange'
 import { STATUS_LABELS, STATUS_ORDER, STATUS_STYLES } from '@/lib/content'
+import { errorMessage } from '@/lib/errors'
 import { cn } from '@/lib/utils'
 import BoardCard from './BoardCard.vue'
 
 const PAGE_SIZE = 20
 
 const props = defineProps<{ filters: ContentFilters; hasFilters: boolean }>()
-const emit = defineEmits<{ clear: [] }>()
+const emit = defineEmits<{
+  clear: []
+  /** A status change was confirmed or rolled back by the server (status counts may differ). */
+  changed: []
+}>()
 
 interface Column {
   items: ContentResponse[]
@@ -43,6 +48,38 @@ const error = ref<string | null>(null)
 const statusById = new Map<number, ContentStatus>()
 
 const { openNew, openEdit, onSaved } = useContentDialog()
+
+// ---- Moving cards --------------------------------------------------------------------------
+
+function byDueDate(a: ContentResponse, b: ContentResponse) {
+  return a.dueDate.localeCompare(b.dueDate) || a.id - b.id
+}
+
+/** Shows `item` in the column of its status, sorted by due date, and keeps totals in step. */
+function show(item: ContentResponse) {
+  const previous = statusById.get(item.id)
+  if (previous && previous !== item.status) {
+    columns[previous].total--
+    columns[item.status].total++
+  }
+  statusById.set(item.id, item.status)
+  for (const status of STATUS_ORDER) {
+    const list = columns[status].items
+    const index = list.findIndex((i) => i.id === item.id)
+    if (index !== -1) list.splice(index, 1)
+  }
+  const target = columns[item.status].items
+  const at = target.findIndex((other) => byDueDate(item, other) < 0)
+  target.splice(at === -1 ? target.length : at, 0, item)
+}
+
+function place(item: ContentResponse, phase: PlacePhase) {
+  show(item)
+  if (phase !== 'optimistic') emit('changed')
+}
+
+// Publishing waits ~5 s before it is sent (see useStatusChange); other moves go at once.
+const { move, isPending, publishingItems } = useStatusChange(place)
 
 // ---- Loading -------------------------------------------------------------------------------
 
@@ -72,6 +109,10 @@ async function loadAll() {
         loadingMore: false,
       })
       page.items.forEach((item) => statusById.set(item.id, status))
+    })
+    // Publishes still waiting are not on the server yet: keep them in Yayında.
+    publishingItems.value.forEach((item) => {
+      if (statusById.has(item.id)) show(asPublishing(item))
     })
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') return
@@ -106,41 +147,17 @@ watch(() => JSON.stringify(props.filters), loadAll, { immediate: true })
 onSaved(() => loadAll())
 onBeforeUnmount(() => controller?.abort())
 
-// ---- Moving cards --------------------------------------------------------------------------
+// ---- Drag & drop ---------------------------------------------------------------------------
 
-function byDueDate(a: ContentResponse, b: ContentResponse) {
-  return a.dueDate.localeCompare(b.dueDate) || a.id - b.id
-}
-
-/** Shows `item` in the column of its status, sorted by due date, and keeps totals in step. */
-function place(item: ContentResponse) {
-  const previous = statusById.get(item.id)
-  if (previous && previous !== item.status) {
-    columns[previous].total--
-    columns[item.status].total++
-  }
-  statusById.set(item.id, item.status)
-  for (const status of STATUS_ORDER) {
-    const list = columns[status].items
-    const index = list.findIndex((i) => i.id === item.id)
-    if (index !== -1) list.splice(index, 1)
-  }
-  const target = columns[item.status].items
-  const at = target.findIndex((other) => byDueDate(item, other) < 0)
-  target.splice(at === -1 ? target.length : at, 0, item)
-}
-
-const { move, isPending } = useStatusChange(place)
-
-// While a card is dragged, columns it may go to are highlighted and the others fade.
+// While a card is dragged, columns it may go to say "Buraya bırak" and the others fade.
 const dragging = ref<ContentResponse | null>(null)
 
-function columnHint(status: ContentStatus) {
+type Hint = 'none' | 'allowed' | 'blocked'
+
+function hintFor(status: ContentStatus): Hint {
   const item = dragging.value
-  if (!item || item.status === status) return ''
-  return item.allowedTransitions.includes(status)
-    ? 'border-primary/50 bg-primary/5'
-    : 'opacity-50'
+  if (!item || item.status === status) return 'none'
+  return item.allowedTransitions.includes(status) ? 'allowed' : 'blocked'
 }
 
 function onDragStart(event: DraggableEvent<ContentResponse>) {
@@ -151,10 +168,13 @@ function onDragEnd() {
   dragging.value = null
 }
 
-/** A card was dropped here. The server decides; a refused move snaps back with an explanation. */
+/**
+ * A card was dropped here. Even a column that is marked "Bu geçiş yapılamaz" accepts the drop:
+ * the server decides, and a refused move (409) snaps back with an explanation.
+ */
 function onDrop(status: ContentStatus, event: DraggableEvent<ContentResponse>) {
   const item = event.data
-  if (item && item.status !== status) move(item, status)
+  if (item && item.status !== status) void move(item, status)
 }
 
 // ---- Layout --------------------------------------------------------------------------------
@@ -167,42 +187,46 @@ const visibleStatuses = computed(() => (isDesktop.value ? STATUS_ORDER : [mobile
 const isEmpty = computed(() => !loading.value && !error.value && STATUS_ORDER.every((s) => columns[s].total === 0))
 
 const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
-  DRAFT: 'No drafts',
-  IN_REVIEW: 'Nothing in review',
-  PUBLISHED: 'Nothing published yet',
+  DRAFT: 'Taslak yok',
+  IN_REVIEW: 'Onay bekleyen içerik yok',
+  PUBLISHED: 'Henüz yayında içerik yok',
 }
 </script>
 
 <template>
-  <div v-if="error" role="alert" class="flex flex-col items-start gap-3 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between">
+  <div
+    v-if="error"
+    role="alert"
+    class="flex flex-col items-start gap-3 rounded-card border bg-card p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"
+  >
     <p class="flex items-start gap-2 text-sm text-muted-foreground">
       <CircleAlertIcon class="mt-0.5 size-4 shrink-0 text-coral-text" aria-hidden="true" />
-      <span><span class="font-medium text-foreground">The board could not be loaded.</span> {{ error }}</span>
+      <span><span class="font-medium text-foreground">Pano yüklenemedi.</span> {{ error }}</span>
     </p>
-    <Button variant="outline" :disabled="loading" @click="loadAll">Try again</Button>
+    <Button variant="outline" :disabled="loading" @click="loadAll">Tekrar dene</Button>
   </div>
 
   <EmptyState
     v-else-if="isEmpty && hasFilters"
     :icon="SearchXIcon"
-    title="No content matches these filters"
-    description="Try another client, type or due date, or clear the filters."
+    title="Bu filtrelere uyan içerik yok"
+    description="Başka bir marka, tür ya da teslim tarihi deneyin veya filtreleri temizleyin."
   >
-    <Button variant="outline" @click="emit('clear')">Clear filters</Button>
+    <Button variant="outline" @click="emit('clear')">Filtreleri temizle</Button>
   </EmptyState>
 
   <EmptyState
     v-else-if="isEmpty"
     :icon="FileTextIcon"
-    title="No content yet"
-    description="Plan the first post or page for one of your clients."
+    title="Henüz içerik yok"
+    description="Markalarınızdan biri için ilk paylaşımı ya da sayfayı planlayın."
   >
-    <Button @click="openNew()">New content</Button>
+    <Button @click="openNew()">Yeni İçerik</Button>
   </EmptyState>
 
   <div v-else class="flex flex-col gap-3">
     <!-- Mobile column switcher -->
-    <div v-if="!isDesktop" role="tablist" aria-label="Board column" class="grid grid-cols-3 gap-1 rounded-lg bg-muted p-0.5">
+    <div v-if="!isDesktop" role="tablist" aria-label="Pano sütunu" class="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
       <button
         v-for="status in STATUS_ORDER"
         :key="status"
@@ -210,8 +234,8 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
         role="tab"
         :aria-selected="mobileColumn === status"
         :class="cn(
-          'flex h-9 items-center justify-center gap-1.5 rounded-md text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-          mobileColumn === status ? 'border bg-card text-foreground' : 'text-muted-foreground',
+          'flex h-9 items-center justify-center gap-1.5 rounded-md text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+          mobileColumn === status ? 'bg-card font-semibold text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'font-medium text-muted-foreground',
         )"
         @click="mobileColumn = status"
       >
@@ -221,49 +245,56 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
       </button>
     </div>
 
-    <div class="grid gap-3 md:grid-cols-3" :aria-busy="loading">
+    <div class="grid items-start gap-4 md:grid-cols-3" :aria-busy="loading">
       <section
         v-for="status in visibleStatuses"
         :key="status"
-        :aria-label="`${STATUS_LABELS[status]} column`"
+        :aria-label="`${STATUS_LABELS[status]} sütunu`"
         :class="cn(
-          'flex min-w-0 flex-col rounded-xl border border-transparent bg-muted/50 p-2 transition-[opacity,background-color,border-color]',
-          columnHint(status),
+          'flex min-w-0 flex-col gap-2.5 rounded-card border bg-column p-3.5 transition-[opacity,background-color,border-color,box-shadow]',
+          hintFor(status) === 'allowed' && 'border-coral bg-coral-soft/50 ring-1 ring-coral',
+          hintFor(status) === 'blocked' && 'opacity-55',
         )"
       >
-        <header class="flex items-center justify-between px-1.5 pt-1 pb-2.5">
-          <h2 class="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <span :class="cn('size-2 rounded-full', STATUS_STYLES[status].dot)" aria-hidden="true" />
-            {{ STATUS_LABELS[status] }}
-          </h2>
-          <Skeleton v-if="loading" class="h-5 w-7 rounded-full" />
-          <span v-else class="rounded-full bg-card px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
-            {{ columns[status].total }}
-          </span>
+        <header class="flex items-center gap-2 px-1 pt-0.5 pb-1">
+          <span :class="cn('size-2.5 rounded-full', STATUS_STYLES[status].dot)" aria-hidden="true" />
+          <h2 class="text-base font-bold">{{ STATUS_LABELS[status] }}</h2>
+          <Skeleton v-if="loading" class="h-4 w-6" />
+          <span v-else class="text-[13px] font-semibold text-muted-foreground tabular-nums">{{ columns[status].total }}</span>
+          <span v-if="hintFor(status) === 'allowed'" class="ml-auto text-xs font-semibold text-coral-text">Buraya bırak</span>
+          <span v-else-if="hintFor(status) === 'blocked'" class="ml-auto text-xs text-muted-foreground">Bu geçiş yapılamaz</span>
         </header>
 
-        <div v-if="loading" class="flex flex-col gap-2" aria-hidden="true">
-          <div v-for="n in 3" :key="n" class="rounded-xl border bg-card p-3">
-            <Skeleton class="h-3.5 w-4/5" />
-            <Skeleton class="mt-2 h-3 w-1/3" />
-            <div class="mt-4 flex justify-between">
-              <Skeleton class="size-6 rounded-md" />
-              <Skeleton class="h-3 w-16" />
+        <div v-if="loading" class="flex flex-col gap-2.5" aria-hidden="true">
+          <div v-for="n in 3" :key="n" class="flex flex-col gap-2.5 rounded-2xl border bg-card p-3">
+            <div class="flex gap-2.5">
+              <Skeleton class="h-[46px] w-[62px] rounded-[9px]" />
+              <div class="flex-1 space-y-2 pt-1">
+                <Skeleton class="h-3.5 w-4/5" />
+                <Skeleton class="h-3 w-1/2" />
+              </div>
+            </div>
+            <div class="flex justify-between">
+              <Skeleton class="h-3 w-24" />
+              <Skeleton class="h-3 w-12" />
             </div>
           </div>
         </div>
 
-        <div v-else class="relative flex flex-1 flex-col">
+        <div v-else class="relative flex flex-1 flex-col gap-2.5">
           <VueDraggable
             v-model="columns[status].items"
             group="board"
             :sort="false"
             :animation="150"
             :disabled="!isDesktop"
+            :force-fallback="true"
+            :fallback-on-body="true"
             filter=".is-pending"
+            :prevent-on-filter="false"
             ghost-class="board-ghost"
-            chosen-class="board-chosen"
-            class="flex min-h-28 flex-1 flex-col gap-2"
+            fallback-class="board-drag"
+            class="flex min-h-28 flex-1 flex-col gap-2.5"
             @start="onDragStart"
             @end="onDragEnd"
             @add="(e: DraggableEvent<ContentResponse>) => onDrop(status, e)"
@@ -281,21 +312,21 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
           <!-- Outside the draggable list so Sortable doesn't treat it as a card. -->
           <p
             v-if="columns[status].items.length === 0"
-            class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground"
+            class="pointer-events-none absolute inset-x-0 top-0 flex h-28 items-center justify-center rounded-2xl border border-dashed border-input text-sm text-muted-foreground"
           >
             {{ EMPTY_COLUMN_TEXT[status] }}
           </p>
 
           <Button
             v-if="columns[status].hasNext"
-            variant="ghost"
-            class="mt-2 h-9 w-full text-muted-foreground"
+            variant="outline"
+            class="w-full"
             :disabled="columns[status].loadingMore"
             @click="loadMore(status)"
           >
             {{ columns[status].loadingMore
-              ? 'Loading…'
-              : `Load more (${columns[status].total - columns[status].items.length} more)` }}
+              ? 'Yükleniyor…'
+              : `Daha fazla yükle (${columns[status].total - columns[status].items.length})` }}
           </Button>
         </div>
       </section>
@@ -304,12 +335,32 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
 </template>
 
 <style scoped>
-/* Where the card will land while dragging. */
+/* Where the card will land: a dashed coral slot. */
 :deep(.board-ghost) {
-  opacity: 0.4;
-  border-style: dashed;
+  border: 2px dashed var(--coral);
+  background: var(--coral-soft);
+  box-shadow: none;
 }
-:deep(.board-chosen) {
-  border-color: var(--ring);
+:deep(.board-ghost > *) {
+  visibility: hidden;
+}
+</style>
+
+<style>
+/*
+ * The card under the pointer (Sortable's fallback clone lives on <body>, so this is unscoped).
+ * `rotate` is its own property, so it adds to the translate Sortable writes into `transform`.
+ */
+.board-drag {
+  rotate: -3deg;
+  border-color: var(--coral) !important;
+  box-shadow: 0 18px 40px rgba(60, 30, 20, 0.22) !important;
+  opacity: 1 !important;
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  .board-drag {
+    rotate: none;
+  }
 }
 </style>

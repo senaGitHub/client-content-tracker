@@ -70,10 +70,9 @@ const approval = useDeferredApprove({ onCommitted: refreshAll, onFailed: () => v
 // Latest known status per item until fresh dashboard data arrives.
 const revised = reactive(new Map<number, ContentStatus>())
 watch(dashboard.data, () => revised.clear())
-const revision = useStatusChange((item: ContentResponse) => {
+const revision = useStatusChange((item: ContentResponse, phase) => {
   revised.set(item.id, item.status)
-  // The optimistic step has no next moves yet; anything else is the server's answer (or a rollback).
-  if (item.allowedTransitions.length > 0) void refreshAll()
+  if (phase !== 'optimistic') void refreshAll()
 })
 
 const approvals = computed(() =>

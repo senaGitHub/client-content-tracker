@@ -1,5 +1,6 @@
 import {
   differenceInCalendarDays,
+  differenceInMinutes,
   format,
   formatDistanceToNow,
   isToday,
@@ -71,6 +72,30 @@ export function dueLabel(item: { dueDate: string; overdue: boolean }, today: Dat
   if (days === 1) return 'Yarın'
   if (days > 1 && days < 7) return format(parseDay(item.dueDate), 'EEEE', { locale: tr })
   return formatShortDate(item.dueDate)
+}
+
+/**
+ * Second line under a due date: "2 gün gecikti" when overdue, or "Bugün" / "Yarın" / weekday when
+ * it is close and not published yet; undefined otherwise.
+ */
+export function dueHint(item: { dueDate: string; overdue: boolean; status: string }): string | undefined {
+  if (item.overdue) return dueLabel(item)
+  if (item.status === 'PUBLISHED') return undefined
+  const days = daysUntil(item.dueDate)
+  return days >= 0 && days < 7 ? dueLabel(item) : undefined
+}
+
+/** Compact "last updated": "az önce", "5 dk önce", "2 sa önce", "dün", "3 gün önce", then "12 Kas". */
+export function formatUpdated(value: string, now: Date = new Date()): string {
+  const date = parseISO(value)
+  const minutes = differenceInMinutes(now, date)
+  if (minutes < 1) return 'az önce'
+  if (minutes < 60) return `${minutes} dk önce`
+  const days = differenceInCalendarDays(startOfDay(now), startOfDay(date))
+  if (days === 0) return `${Math.floor(minutes / 60)} sa önce`
+  if (days === 1) return 'dün'
+  if (days < 7) return `${days} gün önce`
+  return format(date, 'd MMM', { locale: tr })
 }
 
 export function isTodayDay(value: string): boolean {

@@ -10,10 +10,17 @@ export const STATUS_LABELS: Record<ContentStatus, string> = {
 }
 
 /** Tailwind classes backed by the status tokens in main.css. */
-export const STATUS_STYLES: Record<ContentStatus, { badge: string; dot: string }> = {
-  DRAFT: { badge: 'bg-draft text-draft-foreground', dot: 'bg-draft-dot' },
-  IN_REVIEW: { badge: 'bg-review text-review-foreground', dot: 'bg-review-dot' },
-  PUBLISHED: { badge: 'bg-published text-published-foreground', dot: 'bg-published-dot' },
+export const STATUS_STYLES: Record<ContentStatus, { badge: string; dot: string; text: string }> = {
+  DRAFT: { badge: 'bg-draft text-draft-foreground', dot: 'bg-draft-dot', text: 'text-draft-foreground' },
+  IN_REVIEW: { badge: 'bg-review text-review-foreground', dot: 'bg-review-dot', text: 'text-review-foreground' },
+  PUBLISHED: { badge: 'bg-published text-published-foreground', dot: 'bg-published-dot', text: 'text-published-foreground' },
+}
+
+/** What moving to a status is called in menus. */
+export const TRANSITION_LABELS: Record<ContentStatus, string> = {
+  DRAFT: 'Taslağa geri gönder',
+  IN_REVIEW: 'Onaya gönder',
+  PUBLISHED: 'Yayına al',
 }
 
 export const TYPE_LABELS: Record<ContentType, string> = {
@@ -21,6 +28,15 @@ export const TYPE_LABELS: Record<ContentType, string> = {
   BLOG_POST: 'Blog Yazısı',
   WEB_PAGE: 'Web Sayfası',
 }
+
+/** Short names for the type picker in the content forms. */
+export const TYPE_SHORT_LABELS: Record<ContentType, string> = {
+  SOCIAL_POST: 'Sosyal',
+  BLOG_POST: 'Blog',
+  WEB_PAGE: 'Web',
+}
+
+export const TYPE_ORDER: ContentType[] = ['SOCIAL_POST', 'BLOG_POST', 'WEB_PAGE']
 
 /**
  * Link to the Content page with filters applied. The Content page (Phase 7) reads the same

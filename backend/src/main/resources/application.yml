@@ -25,3 +25,6 @@ spring:
 app:
   seed:
     enabled: true
+  cors:
+    # Comma-separated list, e.g. "http://localhost:5173,https://harbour.vercel.app"
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

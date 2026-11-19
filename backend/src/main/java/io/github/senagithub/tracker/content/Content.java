@@ -88,6 +88,26 @@ public class Content {
         updatedAt = Instant.now();
     }
 
+    /** Edits everything except the status, which only changes through {@link #changeStatus}. */
+    public void update(Client client, String title, ContentType type, String channel,
+                       LocalDate dueDate, String notes) {
+        this.client = client;
+        this.title = title;
+        this.type = type;
+        this.channel = channel;
+        this.dueDate = dueDate;
+        this.notes = notes;
+    }
+
+    /** Callers must check {@link ContentStatus#canTransitionTo} first; the service does. */
+    void changeStatus(ContentStatus status) {
+        this.status = status;
+    }
+
+    public boolean isOverdue(LocalDate today) {
+        return dueDate.isBefore(today) && status != ContentStatus.PUBLISHED;
+    }
+
     public Long getId() {
         return id;
     }

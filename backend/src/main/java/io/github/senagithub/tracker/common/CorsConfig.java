@@ -1,0 +1,27 @@
+package io.github.senagithub.tracker.common;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/** The frontend runs on another origin (Vite dev server, Vercel), so the API must allow it explicitly. */
+@Configuration
+public class CorsConfig implements WebMvcConfigurer {
+
+    private final String[] allowedOrigins;
+
+    public CorsConfig(@Value("${app.cors.allowed-origins}") String[] allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
+
+    @Override
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("Location");
+    }
+}

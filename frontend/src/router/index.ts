@@ -21,7 +21,8 @@ const router = createRouter({
           meta: { title: 'Markalar' },
         },
         {
-          path: 'clients/:id(\d+)',
+          // Escaped twice: in a JS string '\d' is just 'd', so the route would only match the letter d.
+          path: 'clients/:id(\\d+)',
           name: 'client-detail',
           component: () => import('@/views/ClientDetailView.vue'),
           props: (route) => ({ id: Number(route.params.id) }),

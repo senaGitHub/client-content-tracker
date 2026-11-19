@@ -2,6 +2,7 @@
 import { MenuIcon } from '@lucide/vue'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import ContentFormDialog from '@/components/content/ContentFormDialog.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import BrandMark from '@/components/layout/BrandMark.vue'
 import ThemeToggle from '@/components/layout/ThemeToggle.vue'
@@ -62,5 +63,8 @@ watch(() => route.fullPath, () => {
         </div>
       </div>
     </main>
+
+    <!-- One shared New / Edit content dialog; pages open it via useContentDialog(). -->
+    <ContentFormDialog />
   </div>
 </template>

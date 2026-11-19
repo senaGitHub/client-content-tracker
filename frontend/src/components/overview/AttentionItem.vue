@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import type { ContentResponse } from '@/api'
 import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
 import StatusBadge from '@/components/content/StatusBadge.vue'
-import { clientLink } from '@/lib/content'
+import { useContentDialog } from '@/composables/useContentDialog'
 import { dueLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -11,14 +11,15 @@ const props = withDefaults(defineProps<{ item: ContentResponse; showStatus?: boo
   showStatus: true,
 })
 
+const { openEdit } = useContentDialog()
 const due = computed(() => dueLabel(props.item))
 </script>
 
 <template>
-  <!-- Phase 6: rows open the client; Phase 7 switches this to the Edit content dialog. -->
-  <RouterLink
-    :to="clientLink(item.client.id)"
-    class="flex items-center gap-3 rounded-lg px-2 py-2 outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+  <button
+    type="button"
+    class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+    @click="openEdit(item)"
   >
     <ContentTypeIcon :type="item.type" />
     <span class="min-w-0 flex-1">
@@ -30,5 +31,5 @@ const due = computed(() => dueLabel(props.item))
       </span>
     </span>
     <StatusBadge v-if="showStatus" :status="item.status" size="sm" />
-  </RouterLink>
+  </button>
 </template>

@@ -46,6 +46,8 @@ export interface ContentResponse {
   client: ClientRef
   /** Computed on the server: dueDate < today and status != PUBLISHED. */
   overdue: boolean
+  /** Statuses this item may move to next (from the backend's domain rule). */
+  allowedTransitions: ContentStatus[]
   createdAt: string
   updatedAt: string
 }

@@ -3,11 +3,14 @@ import { format } from 'date-fns'
 import type { WeekDay } from '@/api'
 import PageSection from '@/components/common/PageSection.vue'
 import { Skeleton } from '@/components/ui/skeleton'
-import { clientLink, STATUS_LABELS, STATUS_STYLES } from '@/lib/content'
+import { useContentDialog } from '@/composables/useContentDialog'
+import { STATUS_LABELS, STATUS_STYLES } from '@/lib/content'
 import { isTodayDay, parseDay } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 defineProps<{ days?: WeekDay[]; loading?: boolean }>()
+
+const { openEdit } = useContentDialog()
 
 const MAX_PER_DAY = 4
 </script>
@@ -55,10 +58,11 @@ const MAX_PER_DAY = 4
         </p>
         <ul v-else class="flex min-w-0 flex-1 flex-col gap-1">
           <li v-for="item in day.items.slice(0, MAX_PER_DAY)" :key="item.id">
-            <RouterLink
-              :to="clientLink(item.client.id)"
+            <button
+              type="button"
               :title="`${item.title} · ${item.client.name} · ${STATUS_LABELS[item.status]}`"
-              class="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-sm outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 xl:text-xs"
+              class="flex w-full min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-left text-sm outline-none transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 xl:text-xs"
+              @click="openEdit(item)"
             >
               <span :class="cn('size-1.5 shrink-0 rounded-full', STATUS_STYLES[item.status].dot)" aria-hidden="true" />
               <span
@@ -70,7 +74,7 @@ const MAX_PER_DAY = 4
                 {{ item.title }}
               </span>
               <span class="sr-only">, {{ STATUS_LABELS[item.status] }}</span>
-            </RouterLink>
+            </button>
           </li>
           <li v-if="day.items.length > MAX_PER_DAY" class="px-1.5 text-xs text-muted-foreground">
             +{{ day.items.length - MAX_PER_DAY }} more

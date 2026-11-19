@@ -11,12 +11,16 @@ import StatusSummary from '@/components/overview/StatusSummary.vue'
 import WeekStrip from '@/components/overview/WeekStrip.vue'
 import { Button } from '@/components/ui/button'
 import { useAsyncData } from '@/composables/useAsyncData'
+import { useContentDialog } from '@/composables/useContentDialog'
 import { formatLongDate } from '@/lib/format'
 
 // One request feeds the whole page; every section renders its own skeleton meanwhile.
 const { data, error, loading, reload } = useAsyncData((signal) => dashboardApi.get(signal), {
   errorToast: 'Could not load the overview',
 })
+
+// Edits made from this page (rows open the content dialog) refresh every section.
+useContentDialog().onSaved(() => reload())
 
 const today = formatLongDate()
 const failed = computed(() => !!error.value && !data.value)

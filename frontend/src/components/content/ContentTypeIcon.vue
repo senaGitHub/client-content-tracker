@@ -3,8 +3,9 @@ import type { Component } from 'vue'
 import { GlobeIcon, NewspaperIcon, Share2Icon } from '@lucide/vue'
 import type { ContentType } from '@/api'
 import { TYPE_LABELS } from '@/lib/content'
+import { cn } from '@/lib/utils'
 
-const props = defineProps<{ type: ContentType }>()
+const props = withDefaults(defineProps<{ type: ContentType; size?: 'sm' | 'md' }>(), { size: 'md' })
 
 const ICONS: Record<ContentType, Component> = {
   SOCIAL_POST: Share2Icon,
@@ -15,10 +16,13 @@ const ICONS: Record<ContentType, Component> = {
 
 <template>
   <span
-    class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+    :class="cn(
+      'flex shrink-0 items-center justify-center bg-muted text-muted-foreground',
+      props.size === 'sm' ? 'size-6 rounded-md' : 'size-8 rounded-lg',
+    )"
     :title="TYPE_LABELS[props.type]"
   >
-    <component :is="ICONS[props.type]" class="size-4" aria-hidden="true" />
+    <component :is="ICONS[props.type]" :class="props.size === 'sm' ? 'size-3.5' : 'size-4'" aria-hidden="true" />
     <span class="sr-only">{{ TYPE_LABELS[props.type] }}</span>
   </span>
 </template>

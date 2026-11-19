@@ -1,65 +1,59 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { toast } from 'vue-sonner'
-import { ApiError, dashboardApi } from '@/api'
-import type { StatusCounts } from '@/api'
+import { CircleAlertIcon, FileTextIcon } from '@lucide/vue'
+import { computed } from 'vue'
+import { dashboardApi } from '@/api'
+import EmptyState from '@/components/common/EmptyState.vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
-import PlaceholderPanel from '@/components/layout/PlaceholderPanel.vue'
+import ClientSummaryList from '@/components/overview/ClientSummaryList.vue'
+import NeedsAttention from '@/components/overview/NeedsAttention.vue'
+import RecentActivity from '@/components/overview/RecentActivity.vue'
+import StatusSummary from '@/components/overview/StatusSummary.vue'
+import WeekStrip from '@/components/overview/WeekStrip.vue'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useAsyncData } from '@/composables/useAsyncData'
+import { formatLongDate } from '@/lib/format'
 
-// Phase 5: a minimal API round-trip so the client, CORS and env config are verified.
-// The real overview (needs attention, week, clients, activity) replaces this in Phase 6.
-const totals = ref<StatusCounts | null>(null)
-const clientCount = ref(0)
-const loading = ref(true)
-const error = ref<string | null>(null)
+// One request feeds the whole page; every section renders its own skeleton meanwhile.
+const { data, error, loading, reload } = useAsyncData((signal) => dashboardApi.get(signal), {
+  errorToast: 'Could not load the overview',
+})
 
-let controller: AbortController | null = null
-
-async function load() {
-  controller?.abort()
-  controller = new AbortController()
-  loading.value = true
-  error.value = null
-  try {
-    const data = await dashboardApi.get(controller.signal)
-    totals.value = data.totals
-    clientCount.value = data.clients.length
-  } catch (e) {
-    if (e instanceof DOMException && e.name === 'AbortError') return
-    error.value = e instanceof ApiError ? e.message : 'Something went wrong.'
-    toast.error('Could not load the overview', { description: error.value })
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(load)
-onBeforeUnmount(() => controller?.abort())
+const today = formatLongDate()
+const failed = computed(() => !!error.value && !data.value)
+const isEmpty = computed(() => !!data.value && data.value.totals.total === 0)
 </script>
 
 <template>
-  <PageHeader title="Overview" description="What needs your attention across all clients." />
+  <PageHeader title="Overview" :description="today" />
 
-  <section aria-live="polite" class="mb-6 rounded-xl border p-5">
-    <div v-if="loading" class="flex flex-col gap-2">
-      <Skeleton class="h-4 w-40" />
-      <Skeleton class="h-4 w-64" />
-    </div>
-    <div v-else-if="error" class="flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-muted-foreground">{{ error }}</p>
-      <Button variant="outline" size="sm" @click="load">Try again</Button>
-    </div>
-    <div v-else-if="totals" class="text-sm">
-      <p class="font-medium text-foreground">Connected to the Harbour API</p>
-      <p class="mt-1 text-muted-foreground">
-        {{ totals.total }} content items across {{ clientCount }} clients:
-        {{ totals.draft }} draft, {{ totals.inReview }} in review, {{ totals.published }} published,
-        <span class="text-overdue">{{ totals.overdue }} overdue</span>.
-      </p>
-    </div>
-  </section>
+  <div v-if="failed" role="alert" class="flex flex-col items-start gap-3 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between">
+    <p class="flex items-start gap-2 text-sm text-muted-foreground">
+      <CircleAlertIcon class="mt-0.5 size-4 shrink-0 text-overdue" aria-hidden="true" />
+      <span><span class="font-medium text-foreground">The overview could not be loaded.</span> {{ error }}</span>
+    </p>
+    <Button variant="outline" :disabled="loading" @click="reload">
+      {{ loading ? 'Retrying…' : 'Try again' }}
+    </Button>
+  </div>
 
-  <PlaceholderPanel text="Needs attention, this week, clients and recent activity are built in the next phase." />
+  <EmptyState
+    v-else-if="isEmpty"
+    :icon="FileTextIcon"
+    title="No content yet"
+    description="Once content is planned for your clients, deadlines and approvals show up here."
+  >
+    <Button as-child variant="outline">
+      <RouterLink to="/clients">Go to clients</RouterLink>
+    </Button>
+  </EmptyState>
+
+  <div v-else class="flex flex-col gap-10" :aria-busy="loading">
+    <StatusSummary :totals="data?.totals" :loading="loading" />
+    <NeedsAttention :data="data?.needsAttention" :loading="loading" />
+    <WeekStrip :days="data?.week" :loading="loading" />
+    <div class="grid gap-10 lg:grid-cols-3 lg:gap-8">
+      <ClientSummaryList class="lg:col-span-2" :clients="data?.clients" :loading="loading" />
+      <RecentActivity :items="data?.recentActivity" :loading="loading" />
+    </div>
+  </div>
 </template>

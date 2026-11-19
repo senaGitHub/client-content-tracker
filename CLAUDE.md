@@ -49,13 +49,64 @@ Pagination: List view is paginated; Board loads the first 20 per column with a "
 UX must-haves: skeleton loading, empty states, toasts (with Undo for status changes), dark mode toggle (persisted), responsive down to mobile, keyboard-friendly dialogs.
 No login, no charts, no fake metrics.
 
-## Design system — "Mediterranean, calm"
-Font: Inter. Soft borders instead of shadows, radius 8–14px, generous spacing. No gradients, no emoji.
-Light: bg #F4F1EB, surface #FFFEFC, border #E5DFD4, subtle #EDE8DF, text #1E2326, muted #666A6C, accent #1D5C67 (on-accent #FFFFFF).
-Dark: bg #14181A, surface #1B2023, border #2A3135, subtle #252B2F, text #E7E5E0, muted #A0A6A8, accent #86BAC4 (on-accent #0F1E22).
-Status (light): Draft bg #EEF0F2 fg #4B5563 dot #94A3B8 · In review bg #F7EED9 fg #8A5A0B dot #D9A441 · Published bg #E3EFE6 fg #2F6B47 dot #5B9A70 · Overdue text #A3412E.
-Status (dark): Draft bg #262A31 fg #B4BBC5 · In review bg #3A3122 fg #E8C07A · Published bg #1F3428 fg #8FD3A6 · Overdue text #F0A08E.
-Layout: left sidebar on page background (logo "Harbour" with the subtitle "Client & Content Tracker", nav: Overview, Clients, Content), main content on a rounded surface panel. Use shadcn-vue components and map these colors to its CSS variables.
+## Design system — "Warm coral" (redesign, Nov 19)
+Source of truth: static mockups in `design/` (git-ignored; read `design/README.md` first, then `01`–`07`). Match their layout, spacing, colours and copy. Their numbers, names and dates are sample data, so render real API data only. Never ship `design/images/*`.
+
+UI language: Turkish (all visible copy, dates via the date-fns `tr` locale). Code, identifiers, API messages, commits and README stay English. The frontend maps API errors (409, field errors) to Turkish text.
+Labels: statuses Taslak / Onayda / Yayında; types Sosyal Medya / Blog Yazısı / Web Sayfası. Nav: Genel Bakış, Markalar, İçerikler, Onay Süreci (a shortcut to the content list filtered to Onayda, with a count badge; not a separate page).
+
+Font: Inter 400–800; page titles 30–32px / 800 / tight tracking. Radius: inputs and buttons 10px, kanban cards 14px, cards 18px, dialogs 20px, chips and badges full. Very soft shadows on cards (0 2px 10px rgba(60,30,20,.04)) and stronger ones on popovers, sheets and dialogs. No emoji.
+Gradients only where the mockups use them: the logo tile and dark scrims on photos so the text on them stays readable.
+
+Colour rules:
+- RED (#D92D20) is reserved for overdue only: solid overdue chips, the Geciken tile and overdue dates. Validation errors and link hovers use the dark coral, never red.
+- Primary buttons are dark (#1C1716 with white text).
+- The accent is coral, used for the active nav item, selected tabs, links, focus and the drop target.
+- Coral #E0623F is under 4.5:1 on white, so text smaller than 18px uses the dark coral #C9502E.
+- Every colour is a CSS variable mapped to shadcn-vue tokens. Dark mode stays: same roles, values below.
+
+| Token | Light | Dark |
+|---|---|---|
+| bg | #FBF8F6 | #141110 |
+| sidebar | #FCF3EF | #1A1513 |
+| surface | #FFFFFF | #1E1917 |
+| column bg | #F7F1EE | #191513 |
+| border / input border | #F1E8E4 / #ECE2DE | #2E2725 / #3A3230 |
+| divider / subtle | #F3ECE9 | #29221F |
+| text / secondary / muted | #1C1716 / #3B3331 / #6F6461 | #F3EDEA / #D6CCC8 / #A89D99 |
+| primary / on-primary | #1C1716 / #FFFFFF | #F3EDEA / #1C1716 |
+| accent | #E0623F | #F08A6C |
+| accent text | #C9502E | #F5A58C |
+| accent soft / nav active | #FDE9E2 / #FBDDD4 | #3A221A / #44271D |
+| overdue solid / text / soft bg / soft border | #D92D20 / #B42318 / #FFF5F4 / #F7C9C3 | #D92D20 / #F97066 / #2C1614 / #5A2620 |
+| Taslak bg / fg / dot | #EEEAE8 / #3B3331 / #B9AFAB | #2B2523 / #D6CCC8 / #8C817D |
+| Onayda bg / fg / dot | #FDEBC8 / #B36A00 / #F2A93B | #3A2B12 / #F5B95A / #F2A93B |
+| Yayında bg / fg / dot | #DDF3E4 / #1E7A44 / #2F8A57 | #173222 / #7FD3A0 / #2F8A57 |
+| approve button (soft / solid) | #E7F5EC with text #1E7A44 / #2F8A57 | #173222 with text #7FD3A0 / #2F8A57 |
+| Sosyal Medya icon | #D6297A | #F06AA8 |
+| toast | #1C1716 | #2A2321 |
+
+Layout:
+- The sidebar (#FCF3EF) holds:
+  - The logo: a coral gradient tile with an anchor icon, "Harbour" with a coral dot, and the subtitle "Brand & Content Workspace".
+  - Nav items with counts.
+  - A full-bleed photo at the bottom with a "Demo veriler" pill.
+- Main content sits directly on bg. On mobile the sidebar becomes a drawer.
+- Toasts are dark with an inline "Geri al" action.
+- Editing content opens a right-side Sheet. New content opens a Dialog.
+
+Photos:
+- Use high-quality Unsplash JPGs in `frontend/public/images`: 1600px wide, about 300 KB or less each.
+- Each brand has `coverImageUrl`. Content thumbnails use their brand's cover.
+- Credit the photographers with links in the README.
+- Brands stay the fictional seed names.
+
+Redesign decisions:
+- Overview greeting changes with the time of day. It has no name and no avatar, because there is no login.
+- "Onayla" in the approvals panel sends its PATCH after about 5 seconds. "Geri al" cancels it, so nothing is sent. A pending PATCH is flushed when the user leaves the page or closes the tab. The status rule stays strict.
+- The edit sheet also has Tür and Kanal fields.
+- "Bu hafta" means the last 7 days, "geçen hafta" the 7 days before that.
+- The old Overview sections ("This week" strip and "Recent activity") are removed from the UI and from the API.
 
 ## Phases
 1. Backend skeleton: Spring Boot project, entities, Flyway migration, repositories, demo seeder. Connect to Neon.
@@ -63,10 +114,22 @@ Layout: left sidebar on page background (logo "Harbour" with the subtitle "Clien
 3. Dashboard endpoint.
 4. Backend deploy: Dockerfile, Render config, env vars, and a docker-compose.yml (app + postgres) so reviewers can run the backend locally with one command.
 5. Frontend skeleton: Vite + TS + Tailwind + shadcn-vue, router, layout, theme (light/dark), API client.
-6. Overview page.
-7. Content page: Board (drag & drop) + List (filters, inline status).
-8. Clients list + detail + dialogs.
-9. Polish + README (screenshot, architecture, decisions & trade-offs, what's next, AI usage, how to run) + frontend deploy.
+6. Overview page. ✓ (old design)
+7. Content page: Board (drag & drop) + List (filters, inline status). ✓ (old design)
+— Redesign (Nov 19): phases 8–13 replace the old 8–9 and rework 6–7 to match `design/`. —
+8. Backend for the redesign:
+   - Flyway V2 adds `clients.cover_image_url`; the seeder fills covers.
+   - Unsplash photos downloaded and optimised into `frontend/public/images`.
+   - `q` search on GET /clients.
+   - GET /contents/status-counts (same filters except status).
+   - GET /contents/{id}/activity for the edit sheet's history.
+   - Dashboard reshaped to the new Overview (real data only): created this week, published this week and last week (from activity_log), oldest waiting approval in days, oldest overdue in days, overdue and in-review counts per brand, and the approvals queue.
+   - Update the Domain and API sections here.
+9. Frontend foundation: tokens (light/dark), Turkish copy and date locale, logo, sidebar (counts, photo, demo pill), restyled shared components (buttons, badges, type icons, toasts, menus), Turkish error mapping. First Vercel deploy (SPA rewrite, env, CORS) so a live URL exists early.
+10. Overview (Genel Bakış): KPI tiles, brand cards, content feed (status tabs and filters), approvals panel with Onayla / Revizyon plus toast and Geri al.
+11. Content (İçerikler): restyled Board and List, status tabs with counts, the "Teslim" filter, the edit Sheet (status actions and history) and the redesigned New content Dialog.
+12. Brands (Markalar): grid with search and cards, brand detail (hero, stats, status tabs, content table), and a New brand dialog with a cover picker.
+13. Polish: responsive and dark mode pass, accessibility, README (screenshot, architecture, decisions & trade-offs, what's next, AI usage, how to run, photo credits), DB reset and final deploy.
 
 ## Out of scope (on purpose — mention in README)
 Auth, delete, client editing, multi-module Maven, SSR/Nuxt (internal panel, SPA is enough).

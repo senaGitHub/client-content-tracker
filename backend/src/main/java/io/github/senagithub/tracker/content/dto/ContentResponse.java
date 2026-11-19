@@ -6,6 +6,7 @@ import io.github.senagithub.tracker.content.ContentType;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 public record ContentResponse(
         Long id,
@@ -18,6 +19,8 @@ public record ContentResponse(
         ClientRef client,
         /* Computed on the server so the overdue rule exists in one place only. */
         boolean overdue,
+        /* Statuses this item may move to next, from the domain rule, so the UI never re-implements it. */
+        List<ContentStatus> allowedTransitions,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -36,6 +39,7 @@ public record ContentResponse(
                 content.getNotes(),
                 new ClientRef(content.getClient().getId(), content.getClient().getName()),
                 content.isOverdue(today),
+                content.getStatus().allowedTransitions(),
                 content.getCreatedAt(),
                 content.getUpdatedAt());
     }

@@ -1,5 +1,6 @@
 package io.github.senagithub.tracker.client.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -20,6 +21,9 @@ public record ClientRequest(
         @NotBlank(message = "Contact email is required.")
         @Email(message = "Contact email must be a valid email address.")
         @Size(max = 254, message = "Contact email must be at most 254 characters.")
-        String contactEmail
+        String contactEmail,
+
+        @Schema(description = "Optional; one of the bundled cover photos, e.g. /images/covers/palm-pool.jpg")
+        String coverImageUrl
 ) {
 }

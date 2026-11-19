@@ -30,6 +30,10 @@ public class Client {
     @Column(name = "contact_email", nullable = false, length = 254)
     private String contactEmail;
 
+    /** One of {@link CoverImages#ALL}, or null when the client has no cover. */
+    @Column(name = "cover_image_url", length = 255)
+    private String coverImageUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -37,11 +41,12 @@ public class Client {
         // required by JPA
     }
 
-    public Client(String name, String industry, String contactName, String contactEmail) {
+    public Client(String name, String industry, String contactName, String contactEmail, String coverImageUrl) {
         this.name = name;
         this.industry = industry;
         this.contactName = contactName;
         this.contactEmail = contactEmail;
+        this.coverImageUrl = coverImageUrl;
     }
 
     /** Only sets the timestamp when none was given, so the demo seeder can backdate records. */
@@ -70,6 +75,10 @@ public class Client {
 
     public String getContactEmail() {
         return contactEmail;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
     }
 
     public Instant getCreatedAt() {

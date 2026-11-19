@@ -21,21 +21,36 @@ Database: PostgreSQL (Neon) for both dev and prod. No local DB install.
 Deploy: backend on Render (Docker), frontend on Vercel, DB on Neon.
 
 ## Domain
-Client: id, name, industry, contactName, contactEmail, createdAt.
+Client: id, name, industry, contactName, contactEmail, coverImageUrl (optional, must be one of the bundled `/images/covers/*.jpg`, listed in `CoverImages`), createdAt.
 Content: id, title, type (SOCIAL_POST | BLOG_POST | WEB_PAGE), channel (optional, e.g. Instagram), status (DRAFT | IN_REVIEW | PUBLISHED), dueDate, notes (optional), client (ManyToOne), createdAt, updatedAt.
-ActivityLog: id, content, action (CREATED | UPDATED | STATUS_CHANGED), fromStatus, toStatus, createdAt — written by the service layer, powers "Recent activity".
+ActivityLog: id, content, action (CREATED | UPDATED | STATUS_CHANGED), fromStatus, toStatus, createdAt. It is written by the service layer and powers:
+- the edit sheet's history,
+- "published this week" and "published last week",
+- how long an item has been waiting for approval.
 
 Business rules:
 - Allowed status transitions: DRAFT → IN_REVIEW, IN_REVIEW → PUBLISHED, IN_REVIEW → DRAFT (revision). Everything else is rejected with HTTP 409. The rule lives in the domain (enum method) and is enforced in the service.
 - "Overdue" is computed, not stored: dueDate < today AND status != PUBLISHED.
-- Demo data: a seeder runs on startup only if the DB is empty. Dates are relative to today so overdue / this week always look realistic. 6 fictional hospitality brands (e.g. Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health) and ~36 contents. Never use real brand names or logos.
+- Demo data:
+  - A seeder runs on startup only if the DB is empty.
+  - Dates are relative to today, so overdue items and this week always look realistic.
+  - There are 6 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health), each with a cover, and 36 contents.
+  - Titles, notes and industries are in Turkish; brand names are not.
+  - Never use real brand names or logos.
 
 ## API (prefix /api)
-- GET /clients?page=&size=&sort= (paged, with content counts per status), POST /clients, GET /clients/{id}
+- GET /clients?q=&page=&size=&sort= (paged, q searches name/industry/contact; with content counts per status + overdue), POST /clients, GET /clients/{id}
 - GET /contents?status=&clientId=&type=&q=&overdue=&dueThisWeek=&page=&size=&sort=, POST /contents, PUT /contents/{id}
+- GET /contents/status-counts?clientId=&type=&q=&overdue=&dueThisWeek= → { draft, inReview, published, overdue, total } for the list's status tabs
+- GET /contents/{id}/activity → history, newest first (404 if the content doesn't exist)
+- Content responses carry client { id, name, coverImageUrl }; the cover is the content thumbnail.
 - Paged lists return { items, page (0-based), size, totalElements, totalPages, hasNext }; size defaults to 20, max 100; sort is whitelisted (unknown property → 400). overdue / dueThisWeek use the same specifications as the dashboard.
 - PATCH /contents/{id}/status  body: { "status": "..." }  → 409 on invalid transition
-- GET /dashboard → totals per status, needsAttention { overdue, dueThisWeek, awaitingApproval }, week (7 days with items per day), clients summary, recent activity
+- GET /dashboard returns:
+  - `totals`: counts per status, plus overdue and total.
+  - `metrics`: createdThisWeek, publishedThisWeek, publishedLastWeek, oldestInReviewDays, oldestOverdueDays. The last two are null when there is nothing to measure. "Week" means the last 7 days, rolling.
+  - `clients`: every client with its counts and cover.
+  - `approvals`: the 5 longest-waiting items in review, longest first. The full count is `totals.inReview`.
 Errors: @RestControllerAdvice returning ProblemDetail (RFC 7807). Validation errors → 400 with field messages. CORS origins from env var.
 
 ## Backend structure

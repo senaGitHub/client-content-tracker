@@ -3,6 +3,7 @@ package io.github.senagithub.tracker.client;
 import io.github.senagithub.tracker.client.dto.ClientRequest;
 import io.github.senagithub.tracker.client.dto.ClientResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.github.senagithub.tracker.common.PageResponse;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -35,8 +37,11 @@ public class ClientController {
     @Operation(summary = "List clients with content counts per status (and overdue); paged, sorted by name",
             description = "Sortable by name, industry, contactName, createdAt. "
                     + "Page size defaults to 20 and is capped at 100.")
-    public PageResponse<ClientResponse> list(@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
-        return clientService.page(pageable);
+    public PageResponse<ClientResponse> list(
+            @Parameter(description = "Case-insensitive search in name, industry and contact name")
+            @RequestParam(name = "q", required = false) String query,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+        return clientService.page(query, pageable);
     }
 
     @GetMapping("/{id}")

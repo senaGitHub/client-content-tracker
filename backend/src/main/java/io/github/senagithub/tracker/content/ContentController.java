@@ -1,5 +1,7 @@
 package io.github.senagithub.tracker.content;
 
+import io.github.senagithub.tracker.activity.dto.ActivityResponse;
+import io.github.senagithub.tracker.client.dto.StatusCounts;
 import io.github.senagithub.tracker.common.PageResponse;
 import io.github.senagithub.tracker.content.dto.ContentRequest;
 import io.github.senagithub.tracker.content.dto.ContentResponse;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/contents")
@@ -53,6 +56,26 @@ public class ContentController {
             @RequestParam(defaultValue = "false") boolean dueThisWeek,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         return contentService.list(new ContentFilter(status, clientId, type, query, overdue, dueThisWeek), pageable);
+    }
+
+    @GetMapping("/status-counts")
+    @Operation(summary = "Counts per status (and overdue) for the same filters as the list, without status",
+            description = "Feeds the list's status tabs, e.g. 'Taslak (52)'.")
+    public StatusCounts statusCounts(
+            @RequestParam(required = false) Long clientId,
+            @RequestParam(required = false) ContentType type,
+            @Parameter(description = "Case-insensitive search in the title")
+            @RequestParam(name = "q", required = false) String query,
+            @RequestParam(defaultValue = "false") boolean overdue,
+            @RequestParam(defaultValue = "false") boolean dueThisWeek) {
+        return contentService.statusCounts(new ContentFilter(null, clientId, type, query, overdue, dueThisWeek));
+    }
+
+    @GetMapping("/{id}/activity")
+    @Operation(summary = "History of one content (created, edited, status changes), newest first")
+    @ApiResponse(responseCode = "404", description = "Content not found")
+    public List<ActivityResponse> activity(@PathVariable Long id) {
+        return contentService.history(id);
     }
 
     @PostMapping

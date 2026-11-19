@@ -3,6 +3,7 @@ package io.github.senagithub.tracker.client;
 import io.github.senagithub.tracker.client.dto.ClientRequest;
 import io.github.senagithub.tracker.client.dto.ClientResponse;
 import io.github.senagithub.tracker.client.dto.StatusCounts;
+import io.github.senagithub.tracker.common.FieldValidationException;
 import io.github.senagithub.tracker.common.NotFoundException;
 import io.github.senagithub.tracker.common.PageResponse;
 import io.github.senagithub.tracker.common.Paging;
@@ -47,8 +48,10 @@ public class ClientService {
     }
 
     /** Three queries plus the page count query, regardless of how many clients exist. */
-    public PageResponse<ClientResponse> page(Pageable pageable) {
-        Page<Client> page = clientRepository.findAll(Paging.sanitize(pageable, DEFAULT_SORT, SORTABLE));
+    public PageResponse<ClientResponse> page(String query, Pageable pageable) {
+        Page<Client> page = clientRepository.findAll(
+                ClientSpecifications.matching(query),
+                Paging.sanitize(pageable, DEFAULT_SORT, SORTABLE));
         Map<Long, StatusCounts> counts = allCounts();
         return PageResponse.from(page, client -> withCounts(client, counts));
     }
@@ -77,9 +80,23 @@ public class ClientService {
                 request.name().trim(),
                 request.industry().trim(),
                 request.contactName().trim(),
-                request.contactEmail().trim());
+                request.contactEmail().trim(),
+                validCover(request.coverImageUrl()));
         clientRepository.save(client);
         return ClientResponse.from(client, StatusCounts.EMPTY);
+    }
+
+    /** Blank means "no cover"; anything else must be one of the bundled photos. */
+    private static String validCover(String coverImageUrl) {
+        if (coverImageUrl == null || coverImageUrl.isBlank()) {
+            return null;
+        }
+        String cover = coverImageUrl.trim();
+        if (!CoverImages.ALL.contains(cover)) {
+            throw new FieldValidationException("coverImageUrl",
+                    "Cover must be one of the bundled photos: " + String.join(", ", CoverImages.ALL));
+        }
+        return cover;
     }
 
     private static Map<Long, StatusCounts> buildCounts(List<StatusCountRow> statusRows, List<OverdueCountRow> overdueRows) {

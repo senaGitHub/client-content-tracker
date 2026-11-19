@@ -1,12 +1,13 @@
 package io.github.senagithub.tracker.content;
 
+import io.github.senagithub.tracker.common.LikePattern;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Query building blocks for content. The "overdue" and "due this week" definitions live here
@@ -41,8 +42,13 @@ public final class ContentSpecifications {
         return pastDue.and(notPublished());
     }
 
-    /** Everything due in the week window, whatever its status (the dashboard's week strip). */
-    public static Specification<Content> dueInWeek(LocalDate today) {
+    /** Created at or after {@code from} (the dashboard's "+N bu hafta"). */
+    public static Specification<Content> createdSince(Instant from) {
+        return (root, q, cb) -> cb.greaterThanOrEqualTo(root.get("createdAt"), from);
+    }
+
+    /** Everything due in the week window, whatever its status. */
+    private static Specification<Content> dueInWeek(LocalDate today) {
         LocalDate lastDay = lastDayOfWeek(today);
         return (root, q, cb) -> cb.between(root.get("dueDate"), today, lastDay);
     }
@@ -64,8 +70,8 @@ public final class ContentSpecifications {
             specs.add((root, q, cb) -> cb.equal(root.get("type"), filter.type()));
         }
         if (filter.query() != null && !filter.query().isBlank()) {
-            String pattern = "%" + escapeLike(filter.query().trim().toLowerCase(Locale.ROOT)) + "%";
-            specs.add((root, q, cb) -> cb.like(cb.lower(root.get("title")), pattern, '\\'));
+            String pattern = LikePattern.containing(filter.query());
+            specs.add((root, q, cb) -> cb.like(cb.lower(root.get("title")), pattern, LikePattern.ESCAPE));
         }
         if (filter.overdue()) {
             specs.add(overdue(today));
@@ -78,10 +84,5 @@ public final class ContentSpecifications {
 
     private static Specification<Content> notPublished() {
         return (root, q, cb) -> cb.notEqual(root.get("status"), ContentStatus.PUBLISHED);
-    }
-
-    /** So a search for "50%" matches the text "50%" instead of treating % as a wildcard. */
-    private static String escapeLike(String value) {
-        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

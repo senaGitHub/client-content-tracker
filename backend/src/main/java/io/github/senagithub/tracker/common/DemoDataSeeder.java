@@ -5,6 +5,7 @@ import io.github.senagithub.tracker.activity.ActivityLog;
 import io.github.senagithub.tracker.activity.ActivityLogRepository;
 import io.github.senagithub.tracker.client.Client;
 import io.github.senagithub.tracker.client.ClientRepository;
+import io.github.senagithub.tracker.client.CoverImages;
 import io.github.senagithub.tracker.content.Content;
 import io.github.senagithub.tracker.content.ContentRepository;
 import io.github.senagithub.tracker.content.ContentStatus;
@@ -44,7 +45,7 @@ public class DemoDataSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoDataSeeder.class);
 
-    private record ClientSeed(String name, String industry, String contactName, String contactEmail,
+    private record ClientSeed(String name, String industry, String contactName, String contactEmail, String coverImageUrl,
                               List<ContentSeed> contents) {
     }
 
@@ -53,56 +54,64 @@ public class DemoDataSeeder implements ApplicationRunner {
                                int dueInDays, String notes) {
     }
 
+    private static final String WEB = "Web sitesi";
+
     private static final List<ClientSeed> SEED = List.of(
-            new ClientSeed("Turkuaz Bay Bodrum", "Boutique hotel", "Deniz Aksoy", "deniz.aksoy@turkuazbay.example", List.of(
-                    new ContentSeed("Sunset dinner on the jetty", SOCIAL_POST, "Instagram", PUBLISHED, -6, null),
-                    new ContentSeed("Early summer booking campaign", SOCIAL_POST, "Instagram", IN_REVIEW, -2,
-                            "Waiting for final discount rate from revenue team."),
-                    new ContentSeed("10 hidden coves near Bodrum", BLOG_POST, "Website", DRAFT, 9, null),
-                    new ContentSeed("Rooms & suites page refresh", WEB_PAGE, "Website", IN_REVIEW, 3,
-                            "New photos from the October shoot."),
-                    new ContentSeed("Boat tour reel", SOCIAL_POST, "TikTok", DRAFT, 1, null),
-                    new ContentSeed("Wedding packages landing page", WEB_PAGE, "Website", PUBLISHED, -12, null))),
-            new ClientSeed("Peri Cave Hotel", "Cave hotel", "Elif Kaya", "elif.kaya@pericave.example", List.of(
-                    new ContentSeed("Balloon morning from the terrace", SOCIAL_POST, "Instagram", PUBLISHED, -4, null),
-                    new ContentSeed("A guide to Cappadocia's valleys", BLOG_POST, "Website", IN_REVIEW, 5, null),
-                    new ContentSeed("Winter rates announcement", SOCIAL_POST, "Facebook", DRAFT, -3,
-                            "Rates confirmed, copy still missing."),
-                    new ContentSeed("Cave suite virtual tour page", WEB_PAGE, "Website", DRAFT, 14, null),
-                    new ContentSeed("Pottery workshop in Avanos", BLOG_POST, "Website", PUBLISHED, -15, null),
-                    new ContentSeed("New Year's Eve dinner teaser", SOCIAL_POST, "Instagram", IN_REVIEW, 2, null))),
-            new ClientSeed("Lara Sands Resort", "Beach resort", "Mert Yıldız", "mert.yildiz@larasands.example", List.of(
-                    new ContentSeed("Kids club summer program", WEB_PAGE, "Website", PUBLISHED, -9, null),
-                    new ContentSeed("All-inclusive, explained", BLOG_POST, "Website", DRAFT, 6, null),
-                    new ContentSeed("Poolside DJ night", SOCIAL_POST, "Instagram", IN_REVIEW, 0, null),
-                    new ContentSeed("Family room comparison page", WEB_PAGE, "Website", DRAFT, 18, null),
-                    new ContentSeed("Behind the scenes: our chefs", SOCIAL_POST, "YouTube", PUBLISHED, -2, null),
-                    new ContentSeed("Early booking offer for next season", SOCIAL_POST, "Instagram", DRAFT, -1,
-                            "Legal needs to approve the terms."))),
-            new ClientSeed("Olive & Stone Spa", "Spa & wellness", "Zeynep Arslan", "zeynep.arslan@olivestone.example", List.of(
-                    new ContentSeed("Hammam ritual, step by step", BLOG_POST, "Website", PUBLISHED, -7, null),
-                    new ContentSeed("Winter detox packages page", WEB_PAGE, "Website", IN_REVIEW, 4, null),
-                    new ContentSeed("Therapist spotlight", SOCIAL_POST, "Instagram", DRAFT, 3, null),
-                    new ContentSeed("Couples spa day offer", SOCIAL_POST, "Facebook", PUBLISHED, 2,
-                            "Scheduled ahead of the weekend."),
-                    new ContentSeed("Olive oil skincare: myths and facts", BLOG_POST, "Website", DRAFT, 11, null),
-                    new ContentSeed("Gift card launch post", SOCIAL_POST, "Instagram", IN_REVIEW, -4,
-                            "Client asked for a second visual option."))),
-            new ClientSeed("Antalya Travel Co.", "Travel agency", "Can Demir", "can.demir@antalyatravel.example", List.of(
-                    new ContentSeed("Old Town walking tour", BLOG_POST, "Website", PUBLISHED, -10, null),
-                    new ContentSeed("Day trips from Antalya", WEB_PAGE, "Website", DRAFT, 8, null),
-                    new ContentSeed("Düden waterfalls carousel", SOCIAL_POST, "Instagram", IN_REVIEW, 1, null),
-                    new ContentSeed("A week on the Lycian Way", BLOG_POST, "Website", DRAFT, 20, null),
-                    new ContentSeed("Tour booking FAQ page", WEB_PAGE, "Website", PUBLISHED, 4, null),
-                    new ContentSeed("Weekend getaway deals", SOCIAL_POST, "Facebook", DRAFT, 5, null))),
-            new ClientSeed("Medina Health", "Health tourism", "Ayşe Çelik", "ayse.celik@medinahealth.example", List.of(
-                    new ContentSeed("Patient journey video", SOCIAL_POST, "YouTube", IN_REVIEW, 6, null),
-                    new ContentSeed("Dental treatment packages page", WEB_PAGE, "Website", PUBLISHED, -8, null),
-                    new ContentSeed("Recovery after hair transplant: what to expect", BLOG_POST, "Website", IN_REVIEW, -1,
-                            "Medical team is reviewing the claims."),
-                    new ContentSeed("Meet our international patient team", SOCIAL_POST, "LinkedIn", DRAFT, 12, null),
-                    new ContentSeed("Accreditation announcement", SOCIAL_POST, "LinkedIn", PUBLISHED, -3, null),
-                    new ContentSeed("Partner recovery hotels page", WEB_PAGE, "Website", DRAFT, 2, null)))
+            new ClientSeed("Turkuaz Bay Bodrum", "Butik otel", "Deniz Aksoy", "deniz.aksoy@turkuazbay.example",
+                    CoverImages.INFINITY_POOL, List.of(
+                    new ContentSeed("İskelede gün batımı yemeği", SOCIAL_POST, "Instagram", PUBLISHED, -6, null),
+                    new ContentSeed("Erken yaz rezervasyon kampanyası", SOCIAL_POST, "Instagram", IN_REVIEW, -2,
+                            "Gelir ekibinden son indirim oranı bekleniyor."),
+                    new ContentSeed("Bodrum'un 10 gizli koyu", BLOG_POST, WEB, DRAFT, 9, null),
+                    new ContentSeed("Odalar ve süitler sayfası yenileme", WEB_PAGE, WEB, IN_REVIEW, 3,
+                            "Ekim çekiminden yeni fotoğraflar eklenecek."),
+                    new ContentSeed("Tekne turu videosu", SOCIAL_POST, "TikTok", DRAFT, 1, null),
+                    new ContentSeed("Düğün paketleri sayfası", WEB_PAGE, WEB, PUBLISHED, -12, null))),
+            new ClientSeed("Peri Cave Hotel", "Mağara otel", "Elif Kaya", "elif.kaya@pericave.example",
+                    CoverImages.CAPPADOCIA_BALLOON, List.of(
+                    new ContentSeed("Terastan balonlu sabah", SOCIAL_POST, "Instagram", PUBLISHED, -4, null),
+                    new ContentSeed("Kapadokya vadileri rehberi", BLOG_POST, WEB, IN_REVIEW, 5, null),
+                    new ContentSeed("Kış fiyatları duyurusu", SOCIAL_POST, "Facebook", DRAFT, -3,
+                            "Fiyatlar onaylandı, metin henüz yazılmadı."),
+                    new ContentSeed("Mağara süit sanal tur sayfası", WEB_PAGE, WEB, DRAFT, 14, null),
+                    new ContentSeed("Avanos'ta çömlek atölyesi", BLOG_POST, WEB, PUBLISHED, -15, null),
+                    new ContentSeed("Yılbaşı gala yemeği tanıtımı", SOCIAL_POST, "Instagram", IN_REVIEW, 2, null))),
+            new ClientSeed("Lara Sands Resort", "Sahil resort", "Mert Yıldız", "mert.yildiz@larasands.example",
+                    CoverImages.PALM_POOL, List.of(
+                    new ContentSeed("Çocuk kulübü yaz programı", WEB_PAGE, WEB, PUBLISHED, -9, null),
+                    new ContentSeed("Her şey dahil konsepti, adım adım", BLOG_POST, WEB, DRAFT, 6, null),
+                    new ContentSeed("Havuz başı DJ gecesi", SOCIAL_POST, "Instagram", IN_REVIEW, 0, null),
+                    new ContentSeed("Aile odaları karşılaştırma sayfası", WEB_PAGE, WEB, DRAFT, 18, null),
+                    new ContentSeed("Kamera arkası: şeflerimiz", SOCIAL_POST, "YouTube", PUBLISHED, -2, null),
+                    new ContentSeed("Gelecek sezon erken rezervasyon", SOCIAL_POST, "Instagram", DRAFT, -1,
+                            "Kampanya koşulları hukuk onayında."))),
+            new ClientSeed("Olive & Stone Spa", "Spa ve wellness", "Zeynep Arslan", "zeynep.arslan@olivestone.example",
+                    CoverImages.SPA_POOL, List.of(
+                    new ContentSeed("Adım adım hamam ritüeli", BLOG_POST, WEB, PUBLISHED, -7, null),
+                    new ContentSeed("Kış detoks paketleri sayfası", WEB_PAGE, WEB, IN_REVIEW, 4, null),
+                    new ContentSeed("Terapistimizle tanışın", SOCIAL_POST, "Instagram", DRAFT, 3, null),
+                    new ContentSeed("Çiftlere özel spa günü", SOCIAL_POST, "Facebook", PUBLISHED, 2,
+                            "Hafta sonundan önce yayına alındı."),
+                    new ContentSeed("Zeytinyağlı cilt bakımı: doğrular ve yanlışlar", BLOG_POST, WEB, DRAFT, 11, null),
+                    new ContentSeed("Hediye kartı lansmanı", SOCIAL_POST, "Instagram", IN_REVIEW, -4,
+                            "Müşteri ikinci bir görsel seçeneği istedi."))),
+            new ClientSeed("Antalya Travel Co.", "Seyahat acentesi", "Can Demir", "can.demir@antalyatravel.example",
+                    CoverImages.ANTALYA_CLIFFS, List.of(
+                    new ContentSeed("Kaleiçi yürüyüş turu", BLOG_POST, WEB, PUBLISHED, -10, null),
+                    new ContentSeed("Antalya'dan günübirlik turlar", WEB_PAGE, WEB, DRAFT, 8, null),
+                    new ContentSeed("Düden Şelalesi karuseli", SOCIAL_POST, "Instagram", IN_REVIEW, 1, null),
+                    new ContentSeed("Likya Yolu'nda bir hafta", BLOG_POST, WEB, DRAFT, 20, null),
+                    new ContentSeed("Tur rezervasyonu SSS sayfası", WEB_PAGE, WEB, PUBLISHED, 4, null),
+                    new ContentSeed("Hafta sonu kaçamak fırsatları", SOCIAL_POST, "Facebook", DRAFT, 5, null))),
+            new ClientSeed("Medina Health", "Sağlık turizmi", "Ayşe Çelik", "ayse.celik@medinahealth.example",
+                    CoverImages.SEASIDE_YOGA, List.of(
+                    new ContentSeed("Hasta yolculuğu videosu", SOCIAL_POST, "YouTube", IN_REVIEW, 6, null),
+                    new ContentSeed("Diş tedavisi paketleri sayfası", WEB_PAGE, WEB, PUBLISHED, -8, null),
+                    new ContentSeed("Saç ekimi sonrası iyileşme: neler beklenmeli", BLOG_POST, WEB, IN_REVIEW, -1,
+                            "Tıbbi ekip iddiaları kontrol ediyor."),
+                    new ContentSeed("Uluslararası hasta ekibimizle tanışın", SOCIAL_POST, "LinkedIn", DRAFT, 12, null),
+                    new ContentSeed("Akreditasyon duyurusu", SOCIAL_POST, "LinkedIn", PUBLISHED, -3, null),
+                    new ContentSeed("Anlaşmalı iyileşme otelleri sayfası", WEB_PAGE, WEB, DRAFT, 2, null)))
     );
 
     private final ClientRepository clientRepository;
@@ -134,8 +143,9 @@ public class DemoDataSeeder implements ApplicationRunner {
         for (int c = 0; c < SEED.size(); c++) {
             ClientSeed clientSeed = SEED.get(c);
             Client client = new Client(clientSeed.name(), clientSeed.industry(),
-                    clientSeed.contactName(), clientSeed.contactEmail());
-            client.setCreatedAt(now.minus(Duration.ofDays(40 - c)));
+                    clientSeed.contactName(), clientSeed.contactEmail(), clientSeed.coverImageUrl());
+            // Clients joined 2–4 months ago, so "… tarihinden beri" on the brand page looks realistic.
+            client.setCreatedAt(now.minus(Duration.ofDays(120 - c * 11L)));
             clientRepository.save(client);
 
             for (ContentSeed seed : clientSeed.contents()) {

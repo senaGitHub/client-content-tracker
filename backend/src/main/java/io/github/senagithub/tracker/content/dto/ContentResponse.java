@@ -25,7 +25,8 @@ public record ContentResponse(
         Instant updatedAt
 ) {
 
-    public record ClientRef(Long id, String name) {
+    /** coverImageUrl doubles as the content's thumbnail. */
+    public record ClientRef(Long id, String name, String coverImageUrl) {
     }
 
     public static ContentResponse from(Content content, LocalDate today) {
@@ -37,7 +38,8 @@ public record ContentResponse(
                 content.getStatus(),
                 content.getDueDate(),
                 content.getNotes(),
-                new ClientRef(content.getClient().getId(), content.getClient().getName()),
+                new ClientRef(content.getClient().getId(), content.getClient().getName(),
+                        content.getClient().getCoverImageUrl()),
                 content.isOverdue(today),
                 content.getStatus().allowedTransitions(),
                 content.getCreatedAt(),

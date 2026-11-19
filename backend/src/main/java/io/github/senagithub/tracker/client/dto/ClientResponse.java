@@ -10,6 +10,7 @@ public record ClientResponse(
         String industry,
         String contactName,
         String contactEmail,
+        String coverImageUrl,
         Instant createdAt,
         StatusCounts counts
 ) {
@@ -21,6 +22,7 @@ public record ClientResponse(
                 client.getIndustry(),
                 client.getContactName(),
                 client.getContactEmail(),
+                client.getCoverImageUrl(),
                 client.getCreatedAt(),
                 counts);
     }

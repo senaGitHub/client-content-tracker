@@ -19,8 +19,8 @@ public class DashboardController {
     }
 
     @GetMapping
-    @Operation(summary = "Everything the Overview page needs: totals, needs-attention lists, "
-            + "the next 7 days, client summaries and recent activity")
+    @Operation(summary = "Everything the Overview page needs: totals, weekly metrics, "
+            + "client summaries and the 5 longest-waiting approvals")
     public DashboardResponse get() {
         return dashboardService.get();
     }

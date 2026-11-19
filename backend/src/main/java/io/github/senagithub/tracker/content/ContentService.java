@@ -2,8 +2,10 @@ package io.github.senagithub.tracker.content;
 
 import io.github.senagithub.tracker.activity.ActivityAction;
 import io.github.senagithub.tracker.activity.ActivityService;
+import io.github.senagithub.tracker.activity.dto.ActivityResponse;
 import io.github.senagithub.tracker.client.Client;
 import io.github.senagithub.tracker.client.ClientRepository;
+import io.github.senagithub.tracker.client.dto.StatusCounts;
 import io.github.senagithub.tracker.common.FieldValidationException;
 import io.github.senagithub.tracker.common.NotFoundException;
 import io.github.senagithub.tracker.content.dto.ContentRequest;
@@ -11,10 +13,12 @@ import io.github.senagithub.tracker.content.dto.ContentResponse;
 import io.github.senagithub.tracker.common.PageResponse;
 import io.github.senagithub.tracker.common.Paging;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -43,6 +47,29 @@ public class ContentService {
         return PageResponse.from(
                 contentRepository.findAll(ContentSpecifications.matching(filter, today), page),
                 content -> ContentResponse.from(content, today));
+    }
+
+    /**
+     * Counts for the list's status tabs: the same filters as {@link #list}, except status
+     * (each tab is one status, so the filter's status is ignored). Four count queries; no rows are loaded.
+     */
+    public StatusCounts statusCounts(ContentFilter filter) {
+        LocalDate today = LocalDate.now();
+        ContentFilter anyStatus = new ContentFilter(null, filter.clientId(), filter.type(), filter.query(),
+                filter.overdue(), filter.dueThisWeek());
+        Specification<Content> base = ContentSpecifications.matching(anyStatus, today);
+        long draft = contentRepository.count(base.and(ContentSpecifications.hasStatus(ContentStatus.DRAFT)));
+        long inReview = contentRepository.count(base.and(ContentSpecifications.hasStatus(ContentStatus.IN_REVIEW)));
+        long published = contentRepository.count(base.and(ContentSpecifications.hasStatus(ContentStatus.PUBLISHED)));
+        long overdue = contentRepository.count(base.and(ContentSpecifications.overdue(today)));
+        return new StatusCounts(draft, inReview, published, overdue, draft + inReview + published);
+    }
+
+    public List<ActivityResponse> history(Long id) {
+        if (!contentRepository.existsById(id)) {
+            throw new NotFoundException("Content", id);
+        }
+        return activityService.history(id);
     }
 
     /** New content always starts as a draft; the pipeline is the only way forward. */

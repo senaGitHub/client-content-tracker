@@ -1,0 +1,133 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+/* Vendored from shadcn-vue (data-state variants + accordion keyframes) so the CLI is not a runtime dependency. */
+@import "./shadcn-variants.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * "Mediterranean, calm" design tokens.
+ * Raw palette values live in :root / .dark; shadcn-vue components read the semantic
+ * names (--background, --primary, ...), and @theme exposes them as Tailwind utilities.
+ */
+:root {
+  /* Base */
+  --background: #f4f1eb;
+  --foreground: #1e2326;
+  --card: #fffefc;
+  --card-foreground: #1e2326;
+  --popover: #fffefc;
+  --popover-foreground: #1e2326;
+  --primary: #1d5c67;
+  --primary-foreground: #ffffff;
+  --secondary: #ede8df;
+  --secondary-foreground: #1e2326;
+  --muted: #ede8df;
+  --muted-foreground: #666a6c;
+  --accent: #ede8df;
+  --accent-foreground: #1e2326;
+  --destructive: #a3412e;
+  --border: #e5dfd4;
+  --input: #e5dfd4;
+  --ring: #1d5c67;
+  --radius: 0.625rem;
+
+  /* Status */
+  --status-draft-bg: #eef0f2;
+  --status-draft-fg: #4b5563;
+  --status-draft-dot: #94a3b8;
+  --status-review-bg: #f7eed9;
+  --status-review-fg: #8a5a0b;
+  --status-review-dot: #d9a441;
+  --status-published-bg: #e3efe6;
+  --status-published-fg: #2f6b47;
+  --status-published-dot: #5b9a70;
+  --overdue: #a3412e;
+}
+
+.dark {
+  --background: #14181a;
+  --foreground: #e7e5e0;
+  --card: #1b2023;
+  --card-foreground: #e7e5e0;
+  --popover: #1b2023;
+  --popover-foreground: #e7e5e0;
+  --primary: #86bac4;
+  --primary-foreground: #0f1e22;
+  --secondary: #252b2f;
+  --secondary-foreground: #e7e5e0;
+  --muted: #252b2f;
+  --muted-foreground: #a0a6a8;
+  --accent: #252b2f;
+  --accent-foreground: #e7e5e0;
+  --destructive: #f0a08e;
+  --border: #2a3135;
+  --input: #2a3135;
+  --ring: #86bac4;
+
+  --status-draft-bg: #262a31;
+  --status-draft-fg: #b4bbc5;
+  --status-review-bg: #3a3122;
+  --status-review-fg: #e8c07a;
+  --status-published-bg: #1f3428;
+  --status-published-fg: #8fd3a6;
+  --overdue: #f0a08e;
+}
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* bg-draft / text-draft-foreground / bg-draft-dot, same for review and published */
+  --color-draft: var(--status-draft-bg);
+  --color-draft-foreground: var(--status-draft-fg);
+  --color-draft-dot: var(--status-draft-dot);
+  --color-review: var(--status-review-bg);
+  --color-review-foreground: var(--status-review-fg);
+  --color-review-dot: var(--status-review-dot);
+  --color-published: var(--status-published-bg);
+  --color-published-foreground: var(--status-published-fg);
+  --color-published-dot: var(--status-published-dot);
+  --color-overdue: var(--overdue);
+
+  --radius-sm: calc(var(--radius) * 0.8);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.2);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+}

@@ -1,0 +1,9 @@
+# Secrets never go into the image; the runtime environment provides them.
+.env
+.env.*
+
+# Build output and editor files
+target/
+.idea/
+.vscode/
+*.iml

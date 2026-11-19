@@ -1,0 +1,26 @@
+# Render Blueprint for the backend API (New → Blueprint → pick this repo).
+services:
+  - type: web
+    name: harbour-api
+    runtime: docker
+    plan: free
+    # Same region as the Neon database (aws eu-central-1), so DB round trips stay short.
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    # Frontend-only commits should not redeploy the API.
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      # Values are entered in the Render dashboard, never committed.
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Comma-separated frontend origins, e.g. the Vercel URL.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false

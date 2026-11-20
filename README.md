@@ -11,7 +11,23 @@ An internal workspace for the account managers of a hospitality group's in-house
 
 ![Harbour overview page](docs/screenshot.png)
 
-The UI is in Turkish because the users are. Code, API messages, commits and this README are in English. All brands and data are fictional demo data.
+### About the Turkish UI
+
+The UI is in Turkish on purpose: the target users are Turkish account managers. Code, the API and the docs are in English. All brands and data are fictional demo data.
+
+| Turkish | English |
+|---|---|
+| Genel Bakış | Overview |
+| Markalar | Brands |
+| İçerikler | Content |
+| Onay Süreci | Approvals |
+| Taslak | Draft |
+| Onayda | In review |
+| Yayında | Published |
+| Geciken | Overdue |
+| Onayla | Approve |
+| Revizyon | Request changes |
+| Geri al | Undo |
 
 ---
 
@@ -26,15 +42,16 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
   - **Board:** a kanban with drag and drop. A rejected move snaps the card back and a toast explains why.
 - **Overdue:** computed, not stored. A due date in the past and not yet published counts as overdue. It is the only thing shown in red.
 - **Overview (Genel Bakış):** KPI tiles, the brands that need attention, a content feed and the approvals queue. Every number on it comes from real data.
+- **Approvals (Onay Süreci):** an inbox of everything waiting for approval, longest-waiting first by default (or shortest-waiting first), with a brand filter and pagination. Each row shows how long the item has waited and its due date, with Onayla / Revizyon right there.
 - **UX basics:** skeleton loading, empty states, toasts with **Geri al** (Undo), a persisted dark mode, keyboard-friendly dialogs, and a responsive layout down to 375px.
 
 ### Extras, and why
-- **Approvals panel with one-click Onayla / Revizyon.** Approving is the account manager's most frequent action, so the longest-waiting items are on the first screen.
+- **Approvals panel with one-click Onayla / Revizyon.** Approving is the account manager's most frequent action, so the longest-waiting items are on the first screen. The Onay Süreci page shows the whole queue with the same buttons. Both use the same backend query (`GET /api/approvals`; the dashboard reads its first page) and the same frontend code, so they always agree.
 - **Activity log.** The service layer writes one row for every create, edit and status change. This one table powers three things without any fake metrics:
   - the edit sheet's history,
   - "published this week",
   - "waiting for approval for N days".
-- **Undo for publishing, without breaking the rule.** Published content cannot go back on the server (see trade-offs). So every move to Yayında, wherever it starts, is held in the browser for about 5 seconds, and **Geri al** cancels it before anything is sent. Other moves are sent at once, and their Undo sends the reverse move.
+- **Undo for publishing, without breaking the rule.** Published content cannot go back on the server (see trade-offs). So every move to Yayında, wherever it starts, is held in the browser for about 5 seconds, and **Geri al** cancels it before anything is sent. Other moves are sent at once, and their Undo sends the reverse move. In the approvals queues (the Overview panel and the Onay Süreci page), Revizyon is held the same way, with Undo in the toast, so both buttons there behave alike.
 - **Priority sort** (`sort=priority`): unpublished content first, oldest due date first, so overdue items lead the Overview feed.
 - **Edit sheet.** Clicking content opens a side sheet instead of a new page, so you keep your place in the board or list. Status buttons in the sheet apply at once and are separate from "Save changes". The `PUT` body has no status, so saving the form can never overwrite a status change.
 - **Realistic demo data.** A seeder fills an empty database with 6 brands and 36 content items. Dates are relative to the day the database was seeded, so the data looks realistic right after a seed and ages after that; I reset the demo database by hand now and then to keep it fresh.
@@ -48,7 +65,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 ```
 
 **Backend** (`/backend`) — Java 21, Spring Boot 3.5, Spring Data JPA, Bean Validation, Flyway, springdoc-openapi.
-- Packaged by feature: `client`, `content`, `activity`, `dashboard`, `common` (errors, CORS, seeder, paging).
+- Packaged by feature: `client`, `content`, `approval`, `activity`, `dashboard`, `common` (errors, CORS, seeder, paging).
 - Each feature follows Controller → Service → Repository. Entities never leave the service layer, and controllers speak in record DTOs.
 - The status rule lives in the domain: `ContentStatus.canTransitionTo(...)`. `ContentService` enforces it.
 - Errors are RFC 7807 `ProblemDetail`s. Validation errors return 400 with per-field messages.
@@ -88,7 +105,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
   - Below 768px the board shows one column at a time, with tabs, and cards move through their menu.
 - **One database for dev and prod.** A single managed Neon instance was used for both to save time. In a real project: Docker Compose locally, Testcontainers in tests, and a managed database in production.
 - **Thin tests on purpose.** The only test is a focused unit test for the status transition rule, the one piece of logic that must never regress. CI type-checks and builds everything else.
-- **Accessibility.** Text contrast meets WCAG AA (4.5:1) in both themes. Several design colours were darkened slightly during polish to get there. Input borders are deliberately left below WCAG 1.4.11's 3:1 for non-text contrast, to keep the design's soft look. Fields are still identified by their visible labels. Status dots are also below 3:1, but they always sit next to a text label.
+- **Accessibility.** Text contrast meets WCAG AA (4.5:1) in both themes, with one deliberate exception: primary buttons and coral badges (such as the Onay Süreci count) use the logo coral #E0623F with white text, about 3.5:1, below AA's 4.5:1. This is a design decision to keep a single coral across the app; all other text meets AA. Several design colours were darkened slightly during polish to get there. Input borders are deliberately left below WCAG 1.4.11's 3:1 for non-text contrast, to keep the design's soft look. Fields are still identified by their visible labels. Status dots are also below 3:1, but they always sit next to a text label.
   - Dialogs trap focus, start in their first field, and return focus to the button that opened them.
   - Every icon-only button has a label.
   - The board has a keyboard alternative to drag and drop: each card's menu.
@@ -112,6 +129,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 6. Serve the cover list from the API, and compute per-brand overdue counts from the shared Specification.
 7. Optimistic locking. Content has no `@Version`, so two concurrent status changes (say IN_REVIEW → PUBLISHED and IN_REVIEW → DRAFT) can both pass the transition check, and the last write wins. That can break "published is final", and the same goes for concurrent PUT edits. The fix is a `@Version` column (Flyway V3) and mapping `ObjectOptimisticLockingFailureException` to 409.
 8. A link field per content (the draft doc or the published post URL), since Harbour tracks the work, not the asset itself.
+9. An English UI via vue-i18n. The Turkish copy is already in a few places (labels, `lib/errors.ts`, `lib/validation.ts`), but the demo data (titles, notes, industries) would need translating too.
 
 ---
 

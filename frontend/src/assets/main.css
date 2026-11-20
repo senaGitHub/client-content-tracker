@@ -76,8 +76,13 @@
   --approve: #2e8654;
   --approve-foreground: #ffffff;
 
-  /* Content type + toast */
+  /* Content type icons (icon only, never text): hues kept away from the status colours
+     (grey / amber / green), overdue red and the coral accent. */
   --type-social: #d6297a;
+  --type-web: #0e7490;
+  --type-blog: #7c3aed;
+
+  /* Toast */
   --toast: #1c1716;
   --toast-foreground: #ffffff;
   --toast-action-border: #4a403e;
@@ -144,6 +149,9 @@
   --approve-foreground: #ffffff;
 
   --type-social: #f06aa8;
+  --type-web: #22d3ee;
+  --type-blog: #b197fc;
+
   --toast: #2a2321;
   --toast-foreground: #f3edea;
   --toast-action-border: #4f4442;
@@ -213,6 +221,8 @@
   --color-approve-soft-foreground: var(--approve-soft-fg);
 
   --color-type-social: var(--type-social);
+  --color-type-web: var(--type-web);
+  --color-type-blog: var(--type-blog);
   --color-toast: var(--toast);
   --color-toast-foreground: var(--toast-foreground);
   --color-toast-success: var(--toast-success);
@@ -245,6 +255,12 @@
   --text-page-title--line-height: 1.25;
   --text-page-title--font-weight: 700;
   --text-page-title--letter-spacing: -0.02em;
+
+  /* The brand detail hero's name: one step above page-title, since it sits on a photo. */
+  --text-hero-title: 30px;
+  --text-hero-title--line-height: 1.2;
+  --text-hero-title--font-weight: 700;
+  --text-hero-title--letter-spacing: -0.02em;
 
   --text-section-title: 16px;
   --text-section-title--line-height: 1.4;

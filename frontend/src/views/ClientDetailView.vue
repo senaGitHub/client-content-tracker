@@ -89,21 +89,24 @@ const stats = computed(() => {
     { label: 'Taslak', value: c.draft, alert: false },
     { label: 'Onayda', value: c.inReview, alert: false },
     { label: 'Yayında', value: c.published, alert: false },
-    { label: 'Geciken', value: c.overdue, alert: true },
+    // Red only when something is actually overdue; at 0 it is a neutral tile like the others.
+    { label: 'Geciken', value: c.overdue, alert: c.overdue > 0 },
   ]
 })
-
-const chip = 'rounded-full px-2.5 py-[3px] text-xs font-semibold'
 </script>
 
 <template>
-  <RouterLink
-    to="/clients"
-    class="mb-5 inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50"
-  >
-    <ArrowLeftIcon class="size-4" aria-hidden="true" />
-    Markalar
-  </RouterLink>
+  <!-- This page has no PageHeader, so the desktop theme toggle sits at the end of the back-link row. -->
+  <div class="mb-5 flex items-center justify-between gap-3">
+    <RouterLink
+      to="/clients"
+      class="inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      <ArrowLeftIcon class="size-4" aria-hidden="true" />
+      Markalar
+    </RouterLink>
+    <ThemeToggle class="hidden lg:inline-flex" />
+  </div>
 
   <!-- Loading -->
   <div v-if="loading && client === undefined" class="flex flex-col gap-5" aria-busy="true">
@@ -159,14 +162,9 @@ const chip = 'rounded-full px-2.5 py-[3px] text-xs font-semibold'
           <p :class="cn('text-sm', hasCover ? 'opacity-90' : 'text-secondary-text')">
             {{ client.industry }} · {{ formatSince(client.createdAt) }}
           </p>
-          <h1 id="brand-name" class="mt-1 text-[32px] leading-tight font-extrabold tracking-[-0.02em] break-words sm:text-[40px]">
+          <h1 id="brand-name" class="mt-1 text-hero-title break-words">
             {{ client.name }}
           </h1>
-          <div class="mt-3.5 flex flex-wrap gap-2.5">
-            <span v-if="client.counts.overdue" :class="cn(chip, 'bg-overdue text-white')">{{ client.counts.overdue }} gecikmiş</span>
-            <span :class="cn(chip, 'bg-white/92 text-black/85')">{{ client.counts.inReview }} onayda</span>
-            <span :class="cn(chip, 'bg-white/92 text-black/85')">{{ client.counts.published }} yayında</span>
-          </div>
         </div>
         <div class="flex flex-wrap gap-2.5 md:shrink-0">
           <Button as-child variant="outline" size="lg" class="border-0 bg-white/95 text-black/85 hover:bg-white hover:text-black dark:bg-white/95 dark:hover:bg-white">
@@ -181,13 +179,6 @@ const chip = 'rounded-full px-2.5 py-[3px] text-xs font-semibold'
           </Button>
         </div>
       </div>
-      <!-- This page has no PageHeader, so the desktop theme toggle sits in the hero's top-right corner. -->
-      <ThemeToggle
-        :class="cn(
-          'absolute top-4 right-4 hidden lg:inline-flex',
-          hasCover && 'bg-white/90 text-black/85 hover:bg-white hover:text-black dark:bg-white/90 dark:hover:bg-white',
-        )"
-      />
     </section>
 
     <!-- Stats -->
@@ -198,14 +189,14 @@ const chip = 'rounded-full px-2.5 py-[3px] text-xs font-semibold'
         :class="cn('rounded-card border p-[18px] shadow-card', stat.alert ? 'border-overdue-border bg-overdue-soft' : 'bg-card')"
       >
         <p :class="cn('text-[13px]', stat.alert ? 'font-semibold text-overdue-text' : 'text-muted-foreground')">{{ stat.label }}</p>
-        <p :class="cn('mt-1 text-[30px] leading-tight font-extrabold tabular-nums', stat.alert && 'text-overdue-text')">{{ stat.value }}</p>
+        <p :class="cn('mt-1 text-kpi tabular-nums', stat.alert && 'text-overdue-text')">{{ stat.value }}</p>
       </div>
     </div>
 
     <!-- Contents -->
     <section aria-labelledby="brand-contents" class="flex flex-col gap-3.5">
       <div class="flex flex-wrap items-center gap-x-3.5 gap-y-2">
-        <h2 id="brand-contents" class="text-[22px] font-bold">İçerikler</h2>
+        <h2 id="brand-contents" class="text-section-title">İçerikler</h2>
         <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
           <button
             v-for="tab in tabs"

@@ -40,11 +40,12 @@ export const TYPE_ORDER: ContentType[] = ['SOCIAL_POST', 'BLOG_POST', 'WEB_PAGE'
 
 /**
  * The "Teslim" filter (Content page toolbar and the Overview feed): 'overdue' maps to ?overdue=true,
- * 'week' to ?dueThisWeek=true. "Tümü" is no filter.
+ * 'week' to ?dueThisWeek=true. "Tümü" is no filter. The window is today and the next 6 days, not the
+ * calendar week, so the label names the 7 days.
  */
 export const DUE_OPTIONS = [
   { value: 'overdue', label: 'Geciken' },
-  { value: 'week', label: 'Bu hafta' },
+  { value: 'week', label: 'Yaklaşan (7 gün)' },
 ]
 
 /**

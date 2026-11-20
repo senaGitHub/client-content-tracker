@@ -5,7 +5,7 @@ import { extendTailwindMerge } from 'tailwind-merge'
  * Custom type-scale tokens. Keep this list in sync with the `--text-*` tokens in the
  * `@theme` block of `src/assets/main.css`.
  */
-const TYPE_SCALE = ['page-title', 'section-title', 'nav', 'logo', 'kpi']
+const TYPE_SCALE = ['page-title', 'hero-title', 'section-title', 'nav', 'logo', 'kpi']
 
 // Out of the box tailwind-merge reads an unknown `text-*` class as a colour, so `text-nav` and
 // `text-foreground` would look like a conflict and `text-nav` would be dropped. Registering the

@@ -23,9 +23,10 @@ interface Tile {
 
 const listLink = (query: Record<string, string>): RouteLocationRaw => ({ path: '/content', query: { view: 'list', ...query } })
 // One short line per tile; with nothing to say (0 or null) the line is left out.
+// "bu hafta" is the API's rolling 7-day window (createdThisWeek / publishedThisWeek).
 const thisWeek = (n: number) => (n > 0 ? `+${n} bu hafta` : undefined)
 const oldestWaiting = (days: number | null) =>
-  days === null ? undefined : days === 0 ? 'hepsi bugün geldi' : `en eskisi ${days} gündür`
+  days === null ? undefined : days === 0 ? 'hepsi bugün geldi' : `en eskisi ${days} gün`
 // Overdue means the due date has passed, so this is at least 1 day when it is not null.
 const oldestOverdue = (days: number | null) => (days === null ? undefined : `en eskisi ${days} gün`)
 
@@ -67,9 +68,10 @@ const tiles = computed<Tile[]>(() => {
       value: t.overdue,
       hint: oldestOverdue(m.oldestOverdueDays),
       icon: CircleAlertIcon,
-      iconClass: 'bg-overdue text-white',
+      // Red only when something is actually overdue; at 0 it is a neutral tile like the others.
+      iconClass: t.overdue > 0 ? 'bg-overdue text-white' : 'bg-muted text-secondary-text',
       to: listLink({ overdue: 'true' }),
-      alert: true,
+      alert: t.overdue > 0,
     },
   ]
 })
@@ -78,12 +80,12 @@ const tiles = computed<Tile[]>(() => {
 <template>
   <section aria-label="Özet" class="grid grid-cols-2 gap-3 xl:grid-cols-4">
     <template v-if="tiles.length === 0">
-      <div v-for="n in 4" :key="n" class="flex items-center gap-3 rounded-card border bg-card px-4 py-3.5 shadow-card" aria-hidden="true">
-        <Skeleton class="size-10 shrink-0 rounded-xl" />
-        <div class="flex-1 space-y-2">
+      <div v-for="n in 4" :key="n" class="rounded-card border bg-card px-4 py-3.5 shadow-card" aria-hidden="true">
+        <div class="flex items-center gap-2">
+          <Skeleton class="size-7 shrink-0 rounded-lg" />
           <Skeleton class="h-3 w-20" />
-          <Skeleton class="h-6 w-12" />
         </div>
+        <Skeleton class="mt-2 h-7 w-12" />
       </div>
     </template>
 
@@ -93,24 +95,25 @@ const tiles = computed<Tile[]>(() => {
       :key="tile.key"
       :to="tile.to"
       :class="cn(
-        'flex flex-col items-start gap-2.5 rounded-card border px-4 py-3.5 sm:flex-row sm:items-center sm:gap-3 shadow-card outline-none transition-[border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-ring/50',
+        'block min-w-0 rounded-card border px-4 py-3.5 shadow-card outline-none transition-[border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-ring/50',
         tile.alert
           ? 'border-overdue-border bg-overdue-soft text-overdue-text hover:border-overdue-text/40'
           : 'bg-card text-foreground hover:border-input',
       )"
     >
-      <span :class="cn('flex size-10 shrink-0 items-center justify-center rounded-xl', tile.iconClass)">
-        <component :is="tile.icon" class="size-5" :stroke-width="tile.alert ? 2.3 : 1.9" aria-hidden="true" />
-      </span>
-      <span class="min-w-0">
-        <span :class="cn('block text-[13px] font-medium', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
+      <!-- Row 1: 28px icon square + label, centred. Row 2: number + short line. Both wrap on 2x2 mobile. -->
+      <span class="flex items-center gap-2">
+        <span :class="cn('flex size-7 shrink-0 items-center justify-center rounded-lg', tile.iconClass)">
+          <component :is="tile.icon" class="size-4" :stroke-width="tile.alert ? 2.3 : 1.9" aria-hidden="true" />
+        </span>
+        <span :class="cn('min-w-0 text-[13px] font-medium break-words', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
           {{ tile.label }}
         </span>
-        <span class="flex flex-wrap items-baseline gap-x-2">
-          <span class="text-kpi tabular-nums">{{ tile.value }}</span>
-          <span v-if="tile.hint" :class="cn('text-xs', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
-            {{ tile.hint }}
-          </span>
+      </span>
+      <span class="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+        <span class="text-kpi tabular-nums">{{ tile.value }}</span>
+        <span v-if="tile.hint" :class="cn('text-xs', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
+          {{ tile.hint }}
         </span>
       </span>
     </RouterLink>

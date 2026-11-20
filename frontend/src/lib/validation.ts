@@ -36,6 +36,7 @@ function onlyAllowed(value: string, chars: string): boolean {
 export const messages = {
   minLength: (label: string, n: number) => `${label} en az ${n} karakter olmalı.`,
   needsLetter: (label: string) => `${label} en az bir harf içermeli.`,
+  dueInPast: 'Teslim tarihi bugünden önce olamaz.',
   onlyLetters: (label: string, chars?: string) =>
     chars ? `${label} yalnızca harf, boşluk ve ${chars} içerebilir.` : `${label} yalnızca harf ve boşluk içerebilir.`,
 }
@@ -54,4 +55,20 @@ export function checkText(field: string, label: string, raw: string): string | u
     return messages.onlyLetters(label, rule.allowedChars)
   }
   return undefined
+}
+
+/** Today's date in the browser's time zone, as the date input's value format (yyyy-MM-dd). */
+export function todayIso(now: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+/**
+ * The due date rule (mirrors the backend's DueDateRule): on create it must be today or later; on
+ * edit an unchanged date may stay in the past, a changed one must be today or later.
+ * `previous` is the saved date when editing. yyyy-MM-dd strings compare correctly as text.
+ */
+export function checkDueDate(value: string, previous?: string, today: string = todayIso()): string | undefined {
+  if (!value || value === previous) return undefined
+  return value < today ? messages.dueInPast : undefined
 }

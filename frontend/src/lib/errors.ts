@@ -54,6 +54,7 @@ function translateFieldMessage(field: string, message: string): string {
   if (min) return messages.minLength(label, Number(min[1]))
   if (/at least one letter/i.test(message)) return messages.needsLetter(label)
   if (/may only contain letters/i.test(message)) return messages.onlyLetters(label, TEXT_RULES[field]?.allowedChars)
+  if (/cannot be in the past/i.test(message)) return messages.dueInPast
   if (/valid email/i.test(message)) return 'Geçerli bir e-posta adresi girin.'
   return `${label} geçersiz.`
 }

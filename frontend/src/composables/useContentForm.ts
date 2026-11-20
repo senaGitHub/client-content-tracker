@@ -1,8 +1,8 @@
-import { nextTick, reactive, watch } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 import { ApiError } from '@/api'
 import type { ContentRequest, ContentResponse, ContentType } from '@/api'
 import { fieldErrors, fieldLabel } from '@/lib/errors'
-import { checkText } from '@/lib/validation'
+import { checkDueDate, checkText, todayIso } from '@/lib/validation'
 
 export type ContentField = 'clientId' | 'title' | 'type' | 'channel' | 'dueDate' | 'notes'
 
@@ -35,6 +35,13 @@ export function useContentForm(idPrefix: string) {
   const form = reactive({ clientId: '', title: '', type: '' as ContentType | '', channel: '', dueDate: '', notes: '' })
   const errors = reactive<Partial<Record<ContentField, string>>>({})
   let initial = ''
+  /** The saved due date when editing: it may stay in the past as long as it isn't changed. */
+  let savedDueDate: string | undefined
+  /**
+   * The date input's `min`: earlier days can't be picked. Also when editing, where a saved past
+   * date still shows as the field's value (the forms are novalidate, so `min` never blocks saving).
+   */
+  const minDueDate = ref(todayIso())
 
   function clearErrors() {
     FIELDS.forEach((f) => delete errors[f])
@@ -48,6 +55,8 @@ export function useContentForm(idPrefix: string) {
     form.channel = from?.channel ?? ''
     form.dueDate = from?.dueDate ?? ''
     form.notes = from?.notes ?? ''
+    savedDueDate = from?.dueDate
+    minDueDate.value = todayIso()
     initial = JSON.stringify(form)
     clearErrors()
   }
@@ -58,7 +67,9 @@ export function useContentForm(idPrefix: string) {
 
   /** The text rules from lib/validation.ts (title must contain a letter); undefined when fine or empty. */
   function ruleError(field: ContentField): string | undefined {
-    return field === 'title' ? checkText(field, fieldLabel(field), form.title) : undefined
+    if (field === 'title') return checkText(field, fieldLabel(field), form.title)
+    if (field === 'dueDate') return checkDueDate(form.dueDate, savedDueDate)
+    return undefined
   }
 
   function validate(): boolean {
@@ -68,6 +79,7 @@ export function useContentForm(idPrefix: string) {
     if (!form.clientId) errors.clientId = 'Bir marka seçin.'
     if (!form.type) errors.type = 'Bir tür seçin.'
     if (!form.dueDate) errors.dueDate = 'Teslim tarihi gerekli.'
+    else if (ruleError('dueDate')) errors.dueDate = ruleError('dueDate')
     return Object.keys(errors).length === 0
   }
 
@@ -134,5 +146,5 @@ export function useContentForm(idPrefix: string) {
     }
   }
 
-  return { form, errors, reset, isDirty, validate, onBlur, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown }
+  return { form, errors, reset, isDirty, validate, onBlur, minDueDate, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown }
 }

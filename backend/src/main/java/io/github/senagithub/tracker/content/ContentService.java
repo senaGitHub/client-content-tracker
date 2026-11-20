@@ -90,6 +90,7 @@ public class ContentService {
     /** New content always starts as a draft; the pipeline is the only way forward. */
     @Transactional
     public ContentResponse create(ContentRequest request) {
+        DueDateRule.check(request.dueDate(), null, LocalDate.now());
         Content content = new Content(
                 findClientForRequest(request.clientId()),
                 request.title().trim(),
@@ -106,6 +107,8 @@ public class ContentService {
     @Transactional
     public ContentResponse update(Long id, ContentRequest request) {
         Content content = findContent(id);
+        // Compared with the saved date before it is replaced: an unchanged past date is fine.
+        DueDateRule.check(request.dueDate(), content.getDueDate(), LocalDate.now());
         content.update(
                 findClientForRequest(request.clientId()),
                 request.title().trim(),

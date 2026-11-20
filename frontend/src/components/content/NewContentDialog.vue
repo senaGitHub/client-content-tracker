@@ -20,7 +20,7 @@ import { errorMessage } from '@/lib/errors'
 
 const { state, openEdit } = useContentDialog()
 const { clients } = useClientOptions()
-const { form, errors, reset, validate, onBlur, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
+const { form, errors, reset, validate, onBlur, minDueDate, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
   useContentForm('new-content')
 
 const saving = ref(false)
@@ -148,9 +148,11 @@ const optional = 'font-normal text-muted-foreground'
             :id="id('dueDate')"
             v-model="form.dueDate"
             type="date"
+            :min="minDueDate"
             class="focus:border-ring focus:ring-3 focus:ring-ring/50"
             :aria-invalid="!!errors.dueDate"
             :aria-describedby="describedBy('dueDate')"
+            @blur="onBlur('dueDate')"
           />
           <p v-if="errors.dueDate" :id="`${id('dueDate')}-error`" class="text-xs font-medium text-destructive">{{ errors.dueDate }}</p>
         </div>

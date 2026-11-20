@@ -49,6 +49,13 @@ const tabs = computed(() =>
   })),
 )
 
+/** The header line follows the view (the same text on mobile). */
+const description = computed(() =>
+  state.value.view === 'board'
+    ? 'Kartları sütunlar arasında sürükleyerek durumunu değiştirin.'
+    : 'Tüm markalarınızın içeriklerini tek yerden yönetin.',
+)
+
 const resultCount = computed(() => {
   const c = counts.data.value
   if (!c) return undefined
@@ -57,7 +64,7 @@ const resultCount = computed(() => {
 </script>
 
 <template>
-  <PageHeader title="İçerikler" description="Tüm markalarınızın içeriklerini tek yerden yönetin." class="mb-5">
+  <PageHeader title="İçerikler" :description="description" class="mb-5">
     <template #actions>
       <div role="group" aria-label="Görünüm" class="flex rounded-lg bg-muted p-1">
         <button

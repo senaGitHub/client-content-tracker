@@ -26,12 +26,13 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
         <!--
           The title button stretches over the card, so the whole card opens the edit sheet.
           data-card-open marks it as the one button the board still lets you drag from (see NO_DRAG).
+          cursor-[inherit]: it covers the card, so it shows the card's grab / grabbing / progress cursor.
         -->
         <h3 class="text-sm leading-[1.3] font-bold break-words text-foreground">
           <button
             type="button"
             data-card-open
-            class="text-left outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+            class="cursor-[inherit] text-left outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
             @click="emit('open')"
           >
             {{ item.title }}

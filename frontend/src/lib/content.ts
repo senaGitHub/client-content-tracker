@@ -39,6 +39,15 @@ export const TYPE_SHORT_LABELS: Record<ContentType, string> = {
 export const TYPE_ORDER: ContentType[] = ['SOCIAL_POST', 'BLOG_POST', 'WEB_PAGE']
 
 /**
+ * The "Teslim" filter (Content page toolbar and the Overview feed): 'overdue' maps to ?overdue=true,
+ * 'week' to ?dueThisWeek=true. "Tümü" is no filter.
+ */
+export const DUE_OPTIONS = [
+  { value: 'overdue', label: 'Geciken' },
+  { value: 'week', label: 'Bu hafta' },
+]
+
+/**
  * Link to the Content page with filters applied. The Content page (Phase 7) reads the same
  * names from the query string, matching the GET /api/contents parameters.
  */

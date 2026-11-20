@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CheckIcon, CircleCheckIcon, LoaderCircleIcon } from '@lucide/vue'
+import { nextTick } from 'vue'
 import type { ApprovalItem, ContentResponse } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,8 +14,31 @@ defineProps<{
   total: number
   /** A revision for this item is on its way to the server. */
   isBusy: (id: number) => boolean
+  /** "Onayla" was pressed: the publish is waiting (or being sent). The row stays until fresh data. */
+  isApproving: (id: number) => boolean
+  /** The waiting publish can still be cancelled (the PATCH has not been sent). */
+  canUndo: (id: number) => boolean
 }>()
-const emit = defineEmits<{ approve: [item: ContentResponse]; revise: [item: ContentResponse] }>()
+const emit = defineEmits<{
+  approve: [item: ContentResponse]
+  revise: [item: ContentResponse]
+  /** Same as the toast's "Geri al". */
+  undo: [item: ContentResponse]
+}>()
+
+// Keyboard users keep their place: the pressed button is replaced, so focus moves to its counterpart
+// (data-approve / data-undo are only used by this panel).
+function focusIn(id: number, action: 'undo' | 'approve') {
+  void nextTick(() => document.querySelector<HTMLElement>(`[data-${action}="${id}"]`)?.focus())
+}
+function approve(item: ContentResponse) {
+  emit('approve', item)
+  focusIn(item.id, 'undo')
+}
+function undo(item: ContentResponse) {
+  emit('undo', item)
+  focusIn(item.id, 'approve')
+}
 
 /** "Bugün" / "Yarın" when it is that close (as in the feed), otherwise "23 Kas". */
 function dueText(dueDate: string): string {
@@ -80,35 +104,69 @@ const REVIEW_LINK ={ path: '/content', query: { view: 'list', status: 'IN_REVIEW
             </p>
           </div>
 
-          <div class="flex shrink-0 flex-col gap-1.5">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="approve"
-                  size="xs"
-                  class="h-7 rounded-md px-2.5 text-xs"
-                  :disabled="isBusy(item.id)"
-                  :aria-label="`Onayla: ${item.title}`"
-                  @click="emit('approve', item)"
-                >
-                  <CheckIcon :stroke-width="2.8" />
-                  Onayla
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="end">Onayla ve yayına al · geri alınabilir</TooltipContent>
-            </Tooltip>
-            <Button
-              variant="outline"
-              size="xs"
-              class="h-7 rounded-md px-2.5 text-xs text-secondary-text"
-              :disabled="isBusy(item.id)"
-              :aria-label="`Revizyona gönder: ${item.title}`"
-              @click="emit('revise', item)"
+          <!--
+            Both states share one grid cell, so the row keeps its width when they swap. The hidden one
+            is invisible and inert (no focus, not read out).
+          -->
+          <div class="grid shrink-0">
+            <div
+              :class="['col-start-1 row-start-1 flex flex-col gap-1.5', isApproving(item.id) && 'invisible']"
+              :inert="isApproving(item.id)"
             >
-              <LoaderCircleIcon v-if="isBusy(item.id)" class="animate-spin" aria-hidden="true" />
-              Revizyon
-            </Button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="approve"
+                    size="xs"
+                    class="h-7 rounded-md px-2.5 text-xs"
+                    :disabled="isBusy(item.id)"
+                    :aria-label="`Onayla: ${item.title}`"
+                    :data-approve="item.id"
+                    @click="approve(item)"
+                  >
+                    <CheckIcon :stroke-width="2.8" />
+                    Onayla
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="end">Onayla ve yayına al · geri alınabilir</TooltipContent>
+              </Tooltip>
+              <Button
+                variant="outline"
+                size="xs"
+                class="h-7 rounded-md px-2.5 text-xs text-secondary-text"
+                :disabled="isBusy(item.id)"
+                :aria-label="`Revizyona gönder: ${item.title}`"
+                @click="emit('revise', item)"
+              >
+                <LoaderCircleIcon v-if="isBusy(item.id)" class="animate-spin" aria-hidden="true" />
+                Revizyon
+              </Button>
+            </div>
+
+            <!-- While the publish waits: the same spinner as StatusMenu's pending state, plus an inline undo. -->
+            <div
+              :class="['col-start-1 row-start-1 flex flex-col items-stretch gap-1.5', !isApproving(item.id) && 'invisible']"
+              :inert="!isApproving(item.id)"
+            >
+              <span class="flex h-7 items-center justify-center">
+                <LoaderCircleIcon class="size-3.5 animate-spin text-muted-foreground" aria-hidden="true" />
+              </span>
+              <Button
+                v-if="canUndo(item.id)"
+                variant="outline"
+                size="xs"
+                class="h-7 rounded-md px-2.5 text-xs text-secondary-text"
+                :aria-label="`Geri al: ${item.title}`"
+                :data-undo="item.id"
+                @click="undo(item)"
+              >
+                Geri al
+              </Button>
+            </div>
           </div>
+
+          <!-- Announces the change for screen readers; empty (silent) otherwise. -->
+          <span class="sr-only" aria-live="polite">{{ isApproving(item.id) ? `${item.title} yayına alınıyor` : '' }}</span>
         </li>
       </TransitionGroup>
     </TooltipProvider>

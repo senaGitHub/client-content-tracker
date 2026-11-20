@@ -6,7 +6,7 @@ import type { ContentType } from '@/api'
 import FilterSelect from '@/components/content/FilterSelect.vue'
 import { useClientOptions } from '@/composables/useClientOptions'
 import type { ContentQuery, DueFilter } from '@/composables/useContentQuery'
-import { TYPE_LABELS, TYPE_ORDER } from '@/lib/content'
+import { DUE_OPTIONS, TYPE_LABELS, TYPE_ORDER } from '@/lib/content'
 
 const props = defineProps<{
   query: ContentQuery
@@ -20,10 +20,6 @@ const { clients } = useClientOptions()
 
 const clientOptions = computed(() => clients.value.map((c) => ({ value: String(c.id), label: c.name })))
 const TYPE_OPTIONS = TYPE_ORDER.map((t) => ({ value: t, label: TYPE_LABELS[t] }))
-const DUE_OPTIONS = [
-  { value: 'overdue', label: 'Geciken' },
-  { value: 'week', label: 'Bu hafta' },
-]
 
 // Typing updates the box at once; the URL (and the request) follow after a short pause.
 const search = ref(props.query.q)

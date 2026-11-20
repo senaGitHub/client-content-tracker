@@ -6,46 +6,50 @@ import { contentsApi } from '@/api'
 import type { ClientRef, ContentFilters, ContentResponse, ContentStatus, ContentType, StatusCounts } from '@/api'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
+import FilterSelect from '@/components/content/FilterSelect.vue'
 import StatusBadge from '@/components/content/StatusBadge.vue'
 import StatusMenu from '@/components/content/StatusMenu.vue'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
 import { useContentDialog } from '@/composables/useContentDialog'
-import { asPublishing, useStatusChange } from '@/composables/useStatusChange'
+import type { DueFilter } from '@/composables/useContentQuery'
+import { useStatusChange } from '@/composables/useStatusChange'
 import type { PlacePhase } from '@/composables/useStatusChange'
-import { STATUS_ORDER, STATUS_LABELS, TYPE_LABELS } from '@/lib/content'
+import { DUE_OPTIONS, STATUS_ORDER, STATUS_LABELS, TYPE_LABELS, TYPE_ORDER } from '@/lib/content'
 import { dueHint, formatShortDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   /** Brands for the filter (from the dashboard response, so no extra request). */
   clients: ClientRef[]
+  /** Approvals from the page's panel that are waiting to be sent: their rows show as pending. */
+  approvingIds: number[]
   /**
-   * Approvals from the page's panel that are waiting to be sent: shown as published already.
-   * Computed at display time, so "Geri al" or a failure puts them back at once.
+   * Reloads the rest of the page (KPIs, brands, approvals, sidebar badge). Called and awaited with
+   * the feed's own reload after a status change from this feed, so everything updates together.
    */
-  publishing: ContentResponse[]
-}>()
-const emit = defineEmits<{
-  /** A status change from this feed was confirmed (or rolled back) by the server. */
-  changed: []
+  reloadSummary: () => Promise<unknown>
 }>()
 
 const ROWS = 6
-const ALL = 'all'
-const TYPES = Object.keys(TYPE_LABELS) as ContentType[]
+const TYPE_OPTIONS = TYPE_ORDER.map((t) => ({ value: t, label: TYPE_LABELS[t] }))
 
 const status = ref<ContentStatus>()
 const clientId = ref<number>()
 const type = ref<ContentType>()
+/** The Content page's "Teslim" filter, with the same API parameters (overdue / dueThisWeek). */
+const due = ref<DueFilter>('all')
+
+const clientOptions = computed(() => props.clients.map((c) => ({ value: String(c.id), label: c.name })))
 
 const filters = computed<ContentFilters>(() => ({
   clientId: clientId.value,
   type: type.value,
+  overdue: due.value === 'overdue',
+  dueThisWeek: due.value === 'week',
 }))
-const hasFilters = computed(() => !!(clientId.value || type.value || status.value))
+const hasFilters = computed(() => !!(clientId.value || type.value || status.value || due.value !== 'all'))
 
 const { openNew, openEdit } = useContentDialog()
 
@@ -55,36 +59,23 @@ const rows = useAsyncData(
   (signal) => contentsApi.list({ ...filters.value, status: status.value }, { size: ROWS, sort: SORT }, signal),
   { immediate: false },
 )
-// Tab counts follow the brand / type filters, never the selected status.
+// Tab counts follow the brand / type / due filters, never the selected status.
 const counts = useAsyncData((signal) => contentsApi.statusCounts(filters.value, signal), { immediate: false })
 
 watch(() => JSON.stringify([filters.value, status.value]), () => void rows.reload(), { immediate: true })
 watch(() => JSON.stringify(filters.value), () => void counts.reload(), { immediate: true })
 /**
  * Reloads rows and tab counts; the page awaits it after something outside the feed changed the
- * data (approvals, dialog saves), so an approval only stops counting as pending once fresh rows are in.
+ * data (approvals, dialog saves), so a pending row only changes once fresh rows are in.
  */
 async function refresh() {
   await Promise.all([rows.reload(), counts.reload()])
 }
 defineExpose({ refresh })
 
-/** Waiting approvals that match the feed's brand / type filters (the tab counts follow those). */
-const publishingInView = computed(() =>
-  props.publishing.filter(
-    (item) => (!clientId.value || item.client.id === clientId.value) && (!type.value || item.type === type.value),
-  ),
-)
-
+// Tab counts are the server's: a publish that is still waiting changes nothing until it is done.
 const tabs = computed(() => {
-  const server = counts.data.value
-  // Every publish comes from Onayda, so a waiting one moves one count from Onayda to Yayında.
-  const moved = publishingInView.value.length
-  const c: StatusCounts | undefined = server && {
-    ...server,
-    inReview: server.inReview - moved,
-    published: server.published + moved,
-  }
+  const c: StatusCounts | undefined = counts.data.value
   return [
     { value: undefined, label: 'Tümü', count: c?.total },
     ...STATUS_ORDER.map((s) => ({
@@ -98,15 +89,24 @@ const tabs = computed(() => {
 // ---- Inline status changes (rows keep their place, like the content list) ---------------------
 
 // "Yayına al" waits ~5 s with "Geri al" (see useStatusChange); other moves go at once.
-function place(item: ContentResponse, phase: PlacePhase) {
-  const page = rows.data.value
-  if (page) rows.data.value = { ...page, items: page.items.map((row) => (row.id === item.id ? item : row)) }
-  if (phase !== 'optimistic') {
-    void counts.reload()
-    emit('changed')
+// - A waiting publish is not shown as published: the row keeps its status and StatusMenu shows its
+//   pending state (badge + spinner), like the rest of the Overview, where nothing changes until done.
+// - Other moves show their new status right away, as before.
+// - Once the server has answered, the feed and the rest of the page reload together. The promise is
+//   awaited for a committed publish, so the row stays pending until the fresh data is in.
+function place(item: ContentResponse, phase: PlacePhase): Promise<unknown> | void {
+  if (phase === 'optimistic') {
+    if (item.status === 'PUBLISHED') return
+    const page = rows.data.value
+    if (page) rows.data.value = { ...page, items: page.items.map((row) => (row.id === item.id ? item : row)) }
+    return
   }
+  return Promise.all([refresh(), props.reloadSummary()])
 }
 const { move, isPending } = useStatusChange(place)
+
+/** Pending from this feed's own menus, or approved in the page's panel and still waiting to be sent. */
+const rowPending = (id: number) => isPending(id) || props.approvingIds.includes(id)
 
 // ---- Display helpers ------------------------------------------------------------------------
 
@@ -115,6 +115,9 @@ const allLink = computed<RouteLocationRaw>(() => {
   if (status.value) query.status = status.value
   if (clientId.value) query.clientId = String(clientId.value)
   if (type.value) query.type = type.value
+  // Same query names the Content page reads (useContentQuery).
+  if (due.value === 'overdue') query.overdue = 'true'
+  if (due.value === 'week') query.dueThisWeek = 'true'
   return { path: '/content', query }
 })
 
@@ -122,14 +125,10 @@ function clearFilters() {
   status.value = undefined
   clientId.value = undefined
   type.value = undefined
+  due.value = 'all'
 }
 
-// Rows keep their place; a waiting approval just shows as published (as in the content list).
-const items = computed(() => {
-  const list = rows.data.value?.items ?? []
-  const waiting = new Set(props.publishing.map((item) => item.id))
-  return waiting.size ? list.map((row) => (waiting.has(row.id) ? asPublishing(row) : row)) : list
-})
+const items = computed(() => rows.data.value?.items ?? [])
 const showSkeleton = computed(() => rows.loading.value && !rows.data.value)
 const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElements === 0)
 </script>
@@ -155,31 +154,37 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
         </button>
       </div>
 
-      <div class="flex w-full gap-2 sm:ml-auto sm:w-auto">
-        <Select
-          :model-value="clientId ? String(clientId) : ALL"
-          @update:model-value="(v) => (clientId = v === ALL ? undefined : Number(v))"
-        >
-          <SelectTrigger class="h-9 flex-1 bg-card font-medium sm:w-40 sm:flex-none" aria-label="Marka">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem :value="ALL">Tüm Markalar</SelectItem>
-            <SelectItem v-for="client in clients" :key="client.id" :value="String(client.id)">{{ client.name }}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          :model-value="type ?? ALL"
-          @update:model-value="(v) => (type = v === ALL ? undefined : (v as ContentType))"
-        >
-          <SelectTrigger class="h-9 flex-1 bg-card font-medium sm:w-36 sm:flex-none" aria-label="Tür">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem :value="ALL">Tüm Türler</SelectItem>
-            <SelectItem v-for="t in TYPES" :key="t" :value="t">{{ TYPE_LABELS[t] }}</SelectItem>
-          </SelectContent>
-        </Select>
+      <!-- Compact filters (the Content page's FilterSelect, size sm): as wide as their text; they wrap below the tabs when space runs out. -->
+      <div class="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
+        <FilterSelect
+          :model-value="clientId ? String(clientId) : undefined"
+          :options="clientOptions"
+          all-label="Tüm Markalar"
+          label="Marka"
+          size="sm"
+          class="max-w-48 flex-auto sm:flex-none"
+          @update:model-value="(v) => (clientId = v ? Number(v) : undefined)"
+        />
+        <FilterSelect
+          :model-value="type"
+          :options="TYPE_OPTIONS"
+          all-label="Tüm Türler"
+          label="Tür"
+          size="sm"
+          class="flex-auto sm:flex-none"
+          @update:model-value="(v) => (type = v as ContentType | undefined)"
+        />
+        <FilterSelect
+          :model-value="due === 'all' ? undefined : due"
+          :options="DUE_OPTIONS"
+          all-label="Teslim: Tümü"
+          prefix="Teslim: "
+          label="Teslim"
+          size="sm"
+          :tone="due === 'overdue' ? 'overdue' : 'coral'"
+          class="flex-auto sm:flex-none"
+          @update:model-value="(v) => (due = (v as DueFilter | undefined) ?? 'all')"
+        />
       </div>
     </div>
 
@@ -276,7 +281,7 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
                 </span>
               </td>
               <td class="p-2.5" @click.stop>
-                <StatusMenu :item="item" :pending="isPending(item.id)" @move="(s) => move(item, s)" />
+                <StatusMenu :item="item" :pending="rowPending(item.id)" @move="(s) => move(item, s)" />
               </td>
             </tr>
           </tbody>
@@ -310,7 +315,7 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
               <span :class="cn('whitespace-nowrap', item.overdue && 'font-semibold text-overdue-text')">{{ dueHint(item) ?? formatShortDate(item.dueDate) }}</span>
             </p>
           </div>
-          <StatusMenu :item="item" :pending="isPending(item.id)" @move="(s) => move(item, s)" />
+          <StatusMenu :item="item" :pending="rowPending(item.id)" @move="(s) => move(item, s)" />
         </li>
       </ul>
 

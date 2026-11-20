@@ -3,7 +3,7 @@ import { CircleAlertIcon, PlusIcon } from '@lucide/vue'
 import { useIntervalFn, useNow } from '@vueuse/core'
 import { computed, reactive, ref, watch } from 'vue'
 import { dashboardApi } from '@/api'
-import type { ClientResponse, ContentResponse, ContentStatus, StatusCounts } from '@/api'
+import type { ContentResponse, ContentStatus } from '@/api'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import ApprovalsPanel from '@/components/overview/ApprovalsPanel.vue'
 import BrandStrip from '@/components/overview/BrandStrip.vue'
@@ -40,16 +40,24 @@ const today = computed(() => formatLongDate(now.value))
 const dashboard = useAsyncData((signal) => dashboardApi.get(signal))
 const feed = ref<InstanceType<typeof ContentFeed>>()
 
-/** Reloads everything on the page; awaited, so a committed approval stays "published" until fresh data is in. */
+/**
+ * Reloads everything on the page (KPIs, brand cards, approvals, feed, sidebar badge) together.
+ * Awaited after a committed approval, so its spinner stays until all of them show the new state.
+ */
 async function refreshAll() {
-  void refreshNavCounts()
-  await Promise.all([dashboard.reload(), feed.value?.refresh()])
+  await Promise.all([reloadSummary(), feed.value?.refresh()])
+}
+/** Everything except the feed: the feed calls this itself after its own status changes. */
+function reloadSummary() {
+  return Promise.all([refreshNavCounts(), dashboard.reload()])
 }
 onSaved(() => void refreshAll())
 
 // ---- Approvals ------------------------------------------------------------------------------
 
-// Onayla: hidden at once, PATCH sent after a few seconds unless "Geri al" cancels it.
+// Onayla: the row stays with a spinner and "Geri al"; the PATCH goes after a few seconds unless
+// cancelled. No number on the page changes while it waits: everything updates together once the
+// PATCH is done and refreshAll (awaited) has fresh data.
 const approval = useDeferredApprove({ onCommitted: refreshAll, onFailed: () => void refreshAll() })
 
 // Revizyon: sent at once (with an undo toast), like every other status change.
@@ -63,44 +71,13 @@ const revision = useStatusChange((item: ContentResponse, phase) => {
 
 const approvals = computed(() =>
   dashboard.data.value?.approvals.filter(
-    (item) => !approval.isPending(item.id) && (revised.get(item.id) ?? 'IN_REVIEW') === 'IN_REVIEW',
+    (item) => (revised.get(item.id) ?? 'IN_REVIEW') === 'IN_REVIEW',
   ),
 )
 
-/** Server totals, with approvals that are still waiting to be sent already counted as published. */
-const totals = computed<StatusCounts | undefined>(() => {
-  const t = dashboard.data.value?.totals
-  if (!t) return undefined
-  const waiting = approval.pendingItems.value
-  const overdue = waiting.filter((item) => item.overdue).length
-  return {
-    ...t,
-    inReview: t.inReview - waiting.length,
-    published: t.published + waiting.length,
-    overdue: t.overdue - overdue,
-  }
-})
-
-/** Brand counts, with waiting approvals already moved from Onayda to Yayında (like `totals`). */
-const clients = computed<ClientResponse[] | undefined>(() => {
-  const list = dashboard.data.value?.clients
-  const waiting = approval.pendingItems.value
-  if (!list || waiting.length === 0) return list
-  return list.map((client) => {
-    const mine = waiting.filter((item) => item.client.id === client.id)
-    if (mine.length === 0) return client
-    const c = client.counts
-    return {
-      ...client,
-      counts: {
-        ...c,
-        inReview: c.inReview - mine.length,
-        published: c.published + mine.length,
-        overdue: c.overdue - mine.filter((item) => item.overdue).length,
-      },
-    }
-  })
-})
+const totals = computed(() => dashboard.data.value?.totals)
+/** Ids of approvals waiting to be sent; the feed shows those rows as pending. */
+const approvingIds = computed(() => approval.pendingItems.value.map((item) => item.id))
 
 const clientOptions = computed(() =>
   (dashboard.data.value?.clients ?? []).map(({ id, name, coverImageUrl }) => ({ id, name, coverImageUrl })),
@@ -138,12 +115,12 @@ const clientOptions = computed(() =>
 
     <div class="grid grid-cols-1 items-start gap-[18px] min-[1340px]:grid-cols-[minmax(0,1fr)_360px]">
       <div class="flex min-w-0 flex-col gap-[18px]">
-        <BrandStrip v-if="!dashboard.error.value || dashboard.data.value" :clients="clients" />
+        <BrandStrip v-if="!dashboard.error.value || dashboard.data.value" :clients="dashboard.data.value?.clients" />
         <ContentFeed
           ref="feed"
           :clients="clientOptions"
-          :publishing="approval.pendingItems.value"
-          @changed="dashboard.reload()"
+          :approving-ids="approvingIds"
+          :reload-summary="reloadSummary"
         />
       </div>
 
@@ -152,7 +129,10 @@ const clientOptions = computed(() =>
         :items="approvals"
         :total="totals?.inReview ?? 0"
         :is-busy="revision.isPending"
+        :is-approving="approval.isPending"
+        :can-undo="approval.canCancel"
         @approve="approval.approve"
+        @undo="(item) => approval.cancel(item.id)"
         @revise="(item) => revision.move(item, 'DRAFT')"
       />
     </div>

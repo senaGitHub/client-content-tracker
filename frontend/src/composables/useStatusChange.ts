@@ -39,9 +39,10 @@ export function asPublishing(item: ContentResponse): ContentResponse {
  * A refused move (409) or a network error puts the item back and explains why.
  *
  * `place(item, phase)` is the view's way to show an item in its current state (e.g. move a card to
- * the column of `item.status`).
+ * the column of `item.status`). It may return a promise (e.g. a reload); for a committed publish it
+ * is awaited, so the item counts as pending until the view has fresh data.
  */
-export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase) => void) {
+export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase) => Promise<unknown> | void) {
   const pending = reactive(new Set<number>())
 
   const publishing = useDeferredApprove({

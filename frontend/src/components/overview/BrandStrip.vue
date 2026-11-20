@@ -24,7 +24,7 @@ const featured = computed(() =>
 <template>
   <section aria-labelledby="overview-brands">
     <div class="mb-2.5 flex items-center justify-between">
-      <h2 id="overview-brands" class="text-section-title">Dikkat isteyen markalar</h2>
+      <h2 id="overview-brands" class="text-section-title">Markalara bakış</h2>
       <RouterLink to="/clients" class="rounded-sm text-[13px] font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50">
         Tüm markalar →
       </RouterLink>

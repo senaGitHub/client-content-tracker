@@ -175,7 +175,7 @@ const stats = computed(() => {
           </h1>
         </div>
         <div class="flex flex-wrap gap-2.5 md:shrink-0">
-          <Button as-child variant="outline" size="lg" class="border-0 bg-white/95 text-black/85 hover:bg-white hover:text-black dark:bg-white/95 dark:hover:bg-white">
+          <Button as-child variant="outline" size="lg" class="border-0 bg-white/95 text-black/85 hover-enabled:bg-white hover-enabled:text-black dark:bg-white/95 dark:hover-enabled:bg-white">
             <a :href="`mailto:${client.contactEmail}`" :title="client.contactEmail" :aria-label="`${client.contactName} kişisine e-posta gönder`">
               <MailIcon :stroke-width="1.8" aria-hidden="true" />
               {{ client.contactName }}
@@ -184,7 +184,7 @@ const stats = computed(() => {
           <Button
             variant="outline"
             size="lg"
-            class="border-0 bg-white/95 text-black/85 hover:bg-white hover:text-black dark:bg-white/95 dark:hover:bg-white"
+            class="border-0 bg-white/95 text-black/85 hover-enabled:bg-white hover-enabled:text-black dark:bg-white/95 dark:hover-enabled:bg-white"
             @click="openEditClient(client)"
           >
             <PencilIcon :stroke-width="1.8" aria-hidden="true" />

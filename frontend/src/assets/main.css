@@ -7,7 +7,8 @@
 
 /*
  * Like hover:, but never on a disabled or aria-disabled element, so a disabled Button (which still
- * gets pointer events, for its not-allowed cursor) keeps its colours. Used by the Button variants.
+ * gets pointer events, for its not-allowed cursor) keeps its colours. Used by the Button variants
+ * and by every hover class passed to a Button from outside (ListPager, edit sheet, brand hero).
  */
 @custom-variant hover-enabled {
   @media (hover: hover) {

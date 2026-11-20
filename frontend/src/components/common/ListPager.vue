@@ -28,7 +28,7 @@ const range = computed(() => {
 })
 const totalPages = computed(() => Math.ceil(props.total / props.pageSize))
 
-const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm font-semibold text-foreground hover:bg-muted'
+const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm font-semibold text-foreground hover-enabled:bg-muted'
 </script>
 
 <template>
@@ -52,7 +52,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
             v-if="entry.type === 'page'"
             :value="entry.value"
             :is-active="entry.value === page"
-            :class="cn(pagerButton, 'px-3', entry.value === page && 'border-nav-active bg-coral-soft text-coral-text hover:bg-coral-soft')"
+            :class="cn(pagerButton, 'px-3', entry.value === page && 'border-nav-active bg-coral-soft text-coral-text hover-enabled:bg-coral-soft')"
           >
             {{ entry.value }}
           </PaginationItem>

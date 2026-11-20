@@ -208,7 +208,7 @@ const optional = 'font-normal text-muted-foreground'
           <Button
             variant="secondary"
             size="icon"
-            class="absolute top-3.5 right-3.5 size-[34px] bg-card/90 text-foreground hover:bg-card"
+            class="absolute top-3.5 right-3.5 size-[34px] bg-card/90 text-foreground hover-enabled:bg-card"
             aria-label="Kapat"
             @click="requestClose"
           >
@@ -397,7 +397,7 @@ const optional = 'font-normal text-muted-foreground'
       </div>
       <div class="flex flex-col-reverse gap-2.5 border-t border-divider bg-background px-6 py-4 sm:flex-row sm:justify-end">
         <!-- The safe choice is primary and focused; discarding is secondary, in accent text (never red). -->
-        <Button type="button" variant="outline" class="text-coral-text hover:text-coral-text" @click="discardAndClose">
+        <Button type="button" variant="outline" class="text-coral-text hover-enabled:text-coral-text" @click="discardAndClose">
           Değişiklikleri sil
         </Button>
         <Button id="confirm-keep-editing" type="button" @click="confirmOpen = false">Düzenlemeye dön</Button>

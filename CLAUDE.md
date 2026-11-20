@@ -31,6 +31,11 @@ ActivityLog: id, content, action (CREATED | UPDATED | STATUS_CHANGED), fromStatu
 Business rules:
 - Allowed status transitions: DRAFT → IN_REVIEW, IN_REVIEW → PUBLISHED, IN_REVIEW → DRAFT (revision). Everything else is rejected with HTTP 409. The rule lives in the domain (enum method) and is enforced in the service.
 - "Overdue" is computed, not stored: dueDate < today AND status != PUBLISHED.
+- Due date can't be set in the past (`DueDateRule`, called by ContentService create/update with `LocalDate.now()`, the same "today" as overdue):
+  - New content: due today or later.
+  - Edit: an unchanged due date may stay in the past (overdue items stay editable); a changed one must be today or later.
+  - Broken → 400 on `dueDate`, "Due date cannot be in the past." (Turkish: "Teslim tarihi bugünden önce olamaz.").
+  - The frontend mirrors it in `frontend/src/lib/validation.ts` (`checkDueDate`), on blur and submit; the date input's `min` is today, so earlier days can't be picked, while a saved past date still shows when editing.
 - Text validation (Bean Validation on the request records; `\p{L}` = any Unicode letter, so Turkish letters count):
   - Brand name: at least 2 characters and at least one letter (digits are fine, e.g. "Otel 7").
   - Industry: at least 2 characters; letters, spaces and `& - , .` only.
@@ -64,7 +69,7 @@ Errors: @RestControllerAdvice returning ProblemDetail (RFC 7807). Validation err
 
 ## Backend structure
 Package by feature: `client`, `content`, `dashboard`, `activity`, `common` (errors, config). Controller → Service → Repository. Entities never leave the service layer; controllers use record DTOs. Schema via Flyway migrations.
-Tests: focused unit tests only, with no Spring context and no DB: the status transition rule (`ContentStatusTest`) and request validation (`ClientRequestValidationTest`, `ContentRequestValidationTest`, plain Bean Validation).
+Tests: focused unit tests only, with no Spring context and no DB: the status transition rule (`ContentStatusTest`), the due date rule (`DueDateRuleTest`, fixed "today") and request validation (`ClientRequestValidationTest`, `ContentRequestValidationTest`, plain Bean Validation).
 
 ## Frontend
 Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with a List | Board toggle (List is the default; the last choice on the device is remembered).

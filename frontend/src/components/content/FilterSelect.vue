@@ -23,12 +23,10 @@ const props = withDefaults(
     /** Prepended to the selected label, e.g. "Teslim: ". */
     prefix?: string
     label: string
-    /** 'overdue' tints the active state red (only for the overdue filter). */
-    tone?: 'coral' | 'overdue'
     /** 'sm' is a compact 32px / 14px variant (the Overview feed, the Content toolbar, Onay Süreci); 'md' (40px) is the default. */
     size?: 'md' | 'sm'
   }>(),
-  { prefix: '', tone: 'coral', size: 'md', allOption: true },
+  { prefix: '', size: 'md', allOption: true },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: string | undefined] }>()
 
@@ -48,8 +46,8 @@ const display = computed(() => {
       'flex min-w-0 items-center rounded-lg border transition-colors focus-within:ring-3 focus-within:ring-ring/50',
       size === 'sm' ? 'h-8' : 'h-10',
       !active && 'border-input bg-card text-foreground',
-      active && tone === 'coral' && 'border-nav-active bg-coral-soft text-coral-text',
-      active && tone === 'overdue' && 'border-overdue-border bg-overdue-soft text-overdue-text',
+      // Every active filter looks the same (coral), the overdue one included: red stays for overdue items.
+      active && 'border-nav-active bg-coral-soft text-coral-text',
     )"
   >
     <Select

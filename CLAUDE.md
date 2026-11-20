@@ -73,7 +73,7 @@ Labels: statuses Taslak / Onayda / Yayında; types Sosyal Medya / Blog Yazısı 
 
 Font: Inter 400–800. The type scale is defined once, as `@theme` tokens in `frontend/src/assets/main.css` (size, line height, weight and tracking together); use the tokens instead of fixed sizes:
 - `text-page-title` 24px / 700 (PageHeader h1, including the Overview greeting),
-- `text-section-title` 16px / 600 (section headings such as "Dikkat isteyen markalar", "İçerik akışı", "Onay bekleyenler"),
+- `text-section-title` 16px / 600 (section headings such as "Markalara bakış", "İçerik akışı", "Onay bekleyenler"),
 - `text-nav` 14px / 500 (sidebar menu; the active item is 600),
 - `text-logo` 18px / 800 ("Harbour"),
 - `text-kpi` 28px / 700 (KPI numbers),
@@ -137,12 +137,16 @@ Redesign decisions:
   - Onay bekleyen: "en eskisi N gündür" ("hepsi bugün geldi" for 0 days),
   - Yayında: "+N bu hafta" (no last-week comparison in the UI),
   - Geciken: "en eskisi N gün".
-- "Dikkat isteyen markalar" shows 4 brands: most overdue first, then most in review, then most content.
+- "Markalara bakış" shows 4 brands: most overdue first, then most in review, then most content.
 - Each approvals panel item shows how long it has waited in review: a neutral chip "N gündür bekliyor" ("bugün gönderildi" for 0 days), with a small grey "Teslim: 23 Kas" next to it. The line under the title has only the brand name.
 - The Overview content feed (İçerik akışı):
   - No row thumbnails. The type icon sits left of the title (tooltip and screen-reader label from ContentTypeIcon), so there is no separate Tür column.
   - Columns: İçerik 44% / Marka 24% / Teslim 16% / Durum 16%.
-  - The status menu stays in the feed for inline changes.
+  - The status menu stays in the feed for inline changes. After a change from the feed, the feed and the rest of the page reload together.
+  - Filters: Tüm Markalar, Tüm Türler and the Content page's "Teslim" filter (Tümü / Geciken / Bu hafta, same `DUE_OPTIONS` and `overdue` / `dueThisWeek` parameters). All three use FilterSelect at `size="sm"` (32px, 13px text, as wide as their text) and wrap below the tabs on narrow screens. Tab counts and the "Tüm içerikler →" link carry the selected filters.
+- FilterSelect lists open below the field (popper, bottom, start; 4px gap), at least as wide as the field, on the Overview and the Content page alike.
+- Approving on the Overview: the approvals panel row stays in place while the publish waits. Its buttons are replaced by StatusMenu's spinner and an inline "Geri al" (the same cancel as the toast's), announced via aria-live. The row leaves when the PATCH is done and fresh data is in. On failure it returns to its buttons.
+- While a publish waits, no number on the Overview changes: KPIs, brand cards, feed tab counts and the sidebar badge keep their server values. The feed shows that row's StatusMenu pending state (badge + spinner), not "Yayında". Once the PATCH is done, everything reloads together (refreshAll, awaited), so nothing flickers. The sidebar badge updates the same way everywhere (refreshNavCounts after the publish). The Content page's board and list still move the card to Yayında at once.
 - Status badges in StatusMenu (feed, content list, brand detail) are `uniform`: every badge is as wide as the longest label, so the chevrons line up. The feed's "Durum" header is centred over the badge, with its width taken from the same component.
 - Publishing cannot be undone on the server, so every move to Yayında is deferred, wherever it starts: "Onayla" in the approvals panel, the edit sheet, board drag & drop, and the list and feed menus. The PATCH is sent after about 5 seconds, and "Geri al" cancels it, so nothing is sent. A pending PATCH is flushed when the user leaves the page or closes the tab. Every other move is sent at once, and its "Geri al" sends the reverse move. The status rule stays strict.
 - The edit sheet also has Tür and Kanal fields. Its status buttons apply at once and are separate from "Değişiklikleri kaydet". The PUT body has no status, so saving the form never overwrites a status change.

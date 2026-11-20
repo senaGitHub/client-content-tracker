@@ -68,10 +68,7 @@ public class ClientService {
 
     public ClientResponse get(Long id) {
         Client client = clientRepository.findById(id).orElseThrow(() -> new NotFoundException("Client", id));
-        Map<Long, StatusCounts> counts = buildCounts(
-                contentRepository.countByStatusForClient(id),
-                contentRepository.countOverdueByClient(LocalDate.now()));
-        return ClientResponse.from(client, counts.getOrDefault(id, StatusCounts.EMPTY));
+        return withOwnCounts(client);
     }
 
     @Transactional
@@ -84,6 +81,28 @@ public class ClientService {
                 validCover(request.coverImageUrl()));
         clientRepository.save(client);
         return ClientResponse.from(client, StatusCounts.EMPTY);
+    }
+
+    /** Same rules as create (trimmed fields, bundled cover only); 404 when the client doesn't exist. */
+    @Transactional
+    public ClientResponse update(Long id, ClientRequest request) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new NotFoundException("Client", id));
+        client.update(
+                request.name().trim(),
+                request.industry().trim(),
+                request.contactName().trim(),
+                request.contactEmail().trim(),
+                validCover(request.coverImageUrl()));
+        return withOwnCounts(client);
+    }
+
+    /** One client with its own status and overdue counts (detail page, and the response to an edit). */
+    private ClientResponse withOwnCounts(Client client) {
+        Long id = client.getId();
+        Map<Long, StatusCounts> counts = buildCounts(
+                contentRepository.countByStatusForClient(id),
+                contentRepository.countOverdueByClient(LocalDate.now()));
+        return ClientResponse.from(client, counts.getOrDefault(id, StatusCounts.EMPTY));
     }
 
     /** Blank means "no cover"; anything else must be one of the bundled photos. */

@@ -68,7 +68,7 @@ watch(() => route.fullPath, () => {
     <!-- One shared New content dialog and Edit sheet; pages open them via useContentDialog(). -->
     <NewContentDialog />
     <ContentEditSheet />
-    <!-- Likewise one New brand dialog, opened via useClientDialog(). -->
+    <!-- Likewise one brand dialog (create and edit), opened via useClientDialog(). -->
     <NewClientDialog />
   </div>
 </template>

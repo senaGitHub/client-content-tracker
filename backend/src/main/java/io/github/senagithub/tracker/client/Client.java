@@ -49,6 +49,15 @@ public class Client {
         this.coverImageUrl = coverImageUrl;
     }
 
+    /** Replaces the editable fields; the service trims them and checks the cover first. */
+    public void update(String name, String industry, String contactName, String contactEmail, String coverImageUrl) {
+        this.name = name;
+        this.industry = industry;
+        this.contactName = contactName;
+        this.contactEmail = contactEmail;
+        this.coverImageUrl = coverImageUrl;
+    }
+
     /** Only sets the timestamp when none was given, so the demo seeder can backdate records. */
     @PrePersist
     void onCreate() {

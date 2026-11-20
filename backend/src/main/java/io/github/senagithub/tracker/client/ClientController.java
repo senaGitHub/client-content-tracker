@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,5 +58,13 @@ public class ClientController {
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Edit a client",
+            description = "Replaces name, industry, contact and cover. Same validation as POST "
+                    + "(400 with field messages); 404 if the client doesn't exist.")
+    public ClientResponse update(@PathVariable Long id, @Valid @RequestBody ClientRequest request) {
+        return clientService.update(id, request);
     }
 }

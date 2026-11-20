@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeftIcon, CircleAlertIcon, MailIcon, PlusIcon, SearchXIcon } from '@lucide/vue'
+import { ArrowLeftIcon, CircleAlertIcon, MailIcon, PencilIcon, PlusIcon, SearchXIcon } from '@lucide/vue'
 import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { LocationQueryRaw } from 'vue-router'
@@ -12,6 +12,7 @@ import ThemeToggle from '@/components/layout/ThemeToggle.vue'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
+import { useClientDialog } from '@/composables/useClientDialog'
 import { useContentDialog } from '@/composables/useContentDialog'
 import { STATUS_LABELS, STATUS_ORDER } from '@/lib/content'
 import { formatSince } from '@/lib/format'
@@ -40,6 +41,9 @@ const { data: client, error, loading, reload } = useAsyncData(
 watch(() => props.id, () => void reload(), { immediate: true })
 // Counts change with every create, edit or status change made in the dialog or sheet.
 onSaved(() => void reload())
+// An edit from the hero's "Düzenle" changes the name, contact and cover shown here.
+const { openEdit: openEditClient, onSaved: onClientSaved } = useClientDialog()
+onClientSaved(() => void reload())
 
 watch(client, (c) => {
   if (c) document.title = `${c.name} · Harbour`
@@ -172,6 +176,15 @@ const stats = computed(() => {
               <MailIcon :stroke-width="1.8" aria-hidden="true" />
               {{ client.contactName }}
             </a>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            class="border-0 bg-white/95 text-black/85 hover:bg-white hover:text-black dark:bg-white/95 dark:hover:bg-white"
+            @click="openEditClient(client)"
+          >
+            <PencilIcon :stroke-width="1.8" aria-hidden="true" />
+            Düzenle
           </Button>
           <Button size="lg" @click="openNew({ clientId: client.id })">
             <PlusIcon :stroke-width="2.4" aria-hidden="true" />

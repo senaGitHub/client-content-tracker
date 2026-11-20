@@ -10,4 +10,5 @@ export const clientsApi = {
     http.get<Page<ClientResponse>>('/clients', { query: { ...params }, signal }),
   get: (id: number, signal?: AbortSignal) => http.get<ClientResponse>(`/clients/${id}`, { signal }),
   create: (body: ClientRequest) => http.post<ClientResponse>('/clients', body),
+  update: (id: number, body: ClientRequest) => http.put<ClientResponse>(`/clients/${id}`, body),
 }

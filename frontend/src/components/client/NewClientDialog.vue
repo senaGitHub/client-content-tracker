@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CheckIcon, XIcon } from '@lucide/vue'
-import { nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { ApiError, clientsApi } from '@/api'
@@ -39,9 +39,20 @@ function clearErrors() {
   FIELDS.forEach((f) => delete errors[f])
 }
 
+/** Edit mode: the dialog was opened with a brand (useClientDialog().openEdit). */
+const editing = computed(() => state.client !== null)
+
+// Opening fills the form: blank to create, the brand's current values to edit.
 watch(() => state.open, (open) => {
   if (!open) return
-  Object.assign(form, { name: '', industry: '', contactName: '', contactEmail: '', coverImageUrl: '' })
+  const c = state.client
+  Object.assign(form, {
+    name: c?.name ?? '',
+    industry: c?.industry ?? '',
+    contactName: c?.contactName ?? '',
+    contactEmail: c?.contactEmail ?? '',
+    coverImageUrl: c?.coverImageUrl ?? '',
+  })
   clearErrors()
 })
 
@@ -113,14 +124,22 @@ async function submit() {
   if (!validate()) return focusFirstError()
   saving.value = true
   try {
-    const saved = await clientsApi.create(body())
-    toast.success('Marka eklendi', {
-      description: saved.name,
-      action: { label: 'Görüntüle', onClick: () => void router.push(clientLink(saved.id)) },
-    })
-    // Before notifying, so the page's reloaded grid finds the request when it renders the new card.
-    highlight('client', saved.id)
-    notifyClientSaved(saved)
+    const editingId = state.client?.id
+    if (editingId !== undefined) {
+      // Edit: the user is already on the brand's page, so no "Görüntüle" and no highlight.
+      const saved = await clientsApi.update(editingId, body())
+      toast.success('Marka güncellendi', { description: saved.name })
+      notifyClientSaved(saved)
+    } else {
+      const saved = await clientsApi.create(body())
+      toast.success('Marka eklendi', {
+        description: saved.name,
+        action: { label: 'Görüntüle', onClick: () => void router.push(clientLink(saved.id)) },
+      })
+      // Before notifying, so the page's reloaded grid finds the request when it renders the new card.
+      highlight('client', saved.id)
+      notifyClientSaved(saved)
+    }
     void refreshNavCounts()
     void reloadClientOptions()
     state.open = false
@@ -163,7 +182,7 @@ const TEXT_FIELDS: { field: Exclude<Field, 'coverImageUrl'>; label: string; plac
     >
       <div class="flex items-start justify-between gap-4 px-5 pt-6 pb-1.5 sm:px-[26px]">
         <div>
-          <DialogTitle class="text-[22px] font-extrabold tracking-[-0.01em]">Yeni Marka</DialogTitle>
+          <DialogTitle class="text-[22px] font-extrabold tracking-[-0.01em]">{{ editing ? 'Markayı düzenle' : 'Yeni Marka' }}</DialogTitle>
           <DialogDescription class="mt-1 text-[13px] text-muted-foreground">
             Markanın adını, sektörünü ve iletişim bilgilerini girin.
           </DialogDescription>
@@ -238,7 +257,7 @@ const TEXT_FIELDS: { field: Exclude<Field, 'coverImageUrl'>; label: string; plac
         <div class="ml-auto flex gap-2.5">
           <Button type="button" variant="outline" :disabled="saving" @click="state.open = false">Vazgeç</Button>
           <Button type="submit" form="new-client-form" :disabled="saving">
-            {{ saving ? 'Kaydediliyor…' : 'Markayı kaydet' }}
+            {{ saving ? 'Kaydediliyor…' : editing ? 'Değişiklikleri kaydet' : 'Markayı kaydet' }}
           </Button>
         </div>
       </div>

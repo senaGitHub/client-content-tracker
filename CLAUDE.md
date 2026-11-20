@@ -154,6 +154,11 @@ Redesign decisions:
   - In the list, Durum is read-only: a `uniform` StatusBadge with no chevron. Status changes go through the ⋯ menu (ContentActionsMenu: Düzenle + status moves), on desktop and mobile rows. The ⋯ menu shows the pending spinner.
   - List rows and board cards have no thumbnails. Under the title, a muted 12px line shows the channel (hidden when there is none). The list keeps its Tür column; mobile rows read "type icon · channel · brand · date".
   - On the board, a press on a card's ⋯ trigger, links or menu items never starts a drag (SortableJS `filter`, `preventOnFilter: false`). The stretched title button (`data-card-open`) still drags, so the rest of the card does too.
+- The Brands page (Markalar):
+  - The header holds only "Yeni Marka" and the theme toggle. The search ("Marka ara...") sits under the header, at the same place and size as the Content page's search (40px, 260px wide on desktop, full width on mobile).
+  - The grid has no dashed "Yeni marka ekle" card. New brands come from the header button, or from the empty state's button when there are no brands.
+  - A brand card with nothing overdue and nothing in review shows a small muted 12px "Bekleyen iş yok" in the badge row. The row keeps the badge height, so every card lines up.
+  - The New brand dialog's description reads "Markanın adını, sektörünü ve iletişim bilgilerini girin."
 - Kanal is picked from a fixed list (ChannelSelect, a Select that opens below the field), with "Kanal yok" first for no channel. The options are `CHANNEL_SUGGESTIONS`: Instagram, Facebook, LinkedIn, TikTok, YouTube, Web sitesi, Blog, E-bülten (every seeded channel is in it). A saved channel that is not in the list shows at the top, selected, so editing never loses it.
 - The edit sheet also has Tür and Kanal fields. Its status buttons apply at once and are separate from "Değişiklikleri kaydet". The PUT body has no status, so saving the form never overwrites a status change.
 - "Bu hafta" means the last 7 days, "geçen hafta" the 7 days before that.

@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { PlusIcon } from '@lucide/vue'
 import { computed } from 'vue'
 import type { ClientResponse } from '@/api'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useClientDialog } from '@/composables/useClientDialog'
 import { clientLink } from '@/lib/content'
 
 const props = defineProps<{ clients?: ClientResponse[] }>()
-const { open: openNewClient } = useClientDialog()
 
-const SHOWN = 3
+const SHOWN = 4
 
 /** The brands that need attention first: most overdue, then most waiting for approval, then the busiest. */
 const featured = computed(() =>
@@ -27,13 +24,13 @@ const featured = computed(() =>
 <template>
   <section aria-labelledby="overview-brands">
     <div class="mb-2.5 flex items-center justify-between">
-      <h2 id="overview-brands" class="text-lg font-bold">Markalar</h2>
+      <h2 id="overview-brands" class="text-section-title">Dikkat isteyen markalar</h2>
       <RouterLink to="/clients" class="rounded-sm text-[13px] font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50">
         Tüm markalar →
       </RouterLink>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-[repeat(3,minmax(0,1fr))_120px]">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
       <template v-if="!clients">
         <Skeleton v-for="n in SHOWN" :key="n" class="h-[120px] rounded-2xl" />
       </template>
@@ -67,15 +64,6 @@ const featured = computed(() =>
           </span>
         </span>
       </RouterLink>
-
-      <button
-        type="button"
-        class="flex h-[120px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-coral/35 bg-coral-soft/50 text-[13px] font-semibold text-coral-text outline-none transition-colors hover:border-coral/60 hover:bg-coral-soft focus-visible:ring-3 focus-visible:ring-ring/50"
-        @click="openNewClient"
-      >
-        <PlusIcon class="size-5 text-coral" :stroke-width="2.4" aria-hidden="true" />
-        Yeni marka
-      </button>
     </div>
   </section>
 </template>

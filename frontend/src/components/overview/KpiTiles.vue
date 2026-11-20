@@ -22,7 +22,12 @@ interface Tile {
 }
 
 const listLink = (query: Record<string, string>): RouteLocationRaw => ({ path: '/content', query: { view: 'list', ...query } })
-const oldest = (days: number | null) => (days === null ? undefined : `en eskisi ${days} gün`)
+// One short line per tile; with nothing to say (0 or null) the line is left out.
+const thisWeek = (n: number) => (n > 0 ? `+${n} bu hafta` : undefined)
+const oldestWaiting = (days: number | null) =>
+  days === null ? undefined : days === 0 ? 'hepsi bugün geldi' : `en eskisi ${days} gündür`
+// Overdue means the due date has passed, so this is at least 1 day when it is not null.
+const oldestOverdue = (days: number | null) => (days === null ? undefined : `en eskisi ${days} gün`)
 
 const tiles = computed<Tile[]>(() => {
   const t = props.totals
@@ -33,7 +38,7 @@ const tiles = computed<Tile[]>(() => {
       key: 'total',
       label: 'Toplam içerik',
       value: t.total,
-      hint: `+${m.createdThisWeek} bu hafta`,
+      hint: thisWeek(m.createdThisWeek),
       icon: LayersIcon,
       iconClass: 'bg-coral-soft text-coral',
       to: { path: '/content' },
@@ -42,7 +47,7 @@ const tiles = computed<Tile[]>(() => {
       key: 'review',
       label: 'Onay bekleyen',
       value: t.inReview,
-      hint: oldest(m.oldestInReviewDays),
+      hint: oldestWaiting(m.oldestInReviewDays),
       icon: ClockIcon,
       iconClass: 'bg-review text-review-foreground',
       to: listLink({ status: 'IN_REVIEW' }),
@@ -51,7 +56,7 @@ const tiles = computed<Tile[]>(() => {
       key: 'published',
       label: 'Yayında',
       value: t.published,
-      hint: `${m.publishedThisWeek} bu hafta · geçen hafta ${m.publishedLastWeek}`,
+      hint: thisWeek(m.publishedThisWeek),
       icon: CircleCheckIcon,
       iconClass: 'bg-approve-soft text-published-dot',
       to: listLink({ status: 'PUBLISHED' }),
@@ -60,7 +65,7 @@ const tiles = computed<Tile[]>(() => {
       key: 'overdue',
       label: 'Geciken',
       value: t.overdue,
-      hint: oldest(m.oldestOverdueDays),
+      hint: oldestOverdue(m.oldestOverdueDays),
       icon: CircleAlertIcon,
       iconClass: 'bg-overdue text-white',
       to: listLink({ overdue: 'true' }),
@@ -102,7 +107,7 @@ const tiles = computed<Tile[]>(() => {
           {{ tile.label }}
         </span>
         <span class="flex flex-wrap items-baseline gap-x-2">
-          <span class="text-[26px] leading-tight font-extrabold tracking-[-0.02em] tabular-nums">{{ tile.value }}</span>
+          <span class="text-kpi tabular-nums">{{ tile.value }}</span>
           <span v-if="tile.hint" :class="cn('text-xs', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
             {{ tile.hint }}
           </span>

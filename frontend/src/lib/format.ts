@@ -20,14 +20,9 @@ export function parseDay(value: string): Date {
   return parseISO(value)
 }
 
-/** "19 Kasım, Perşembe" */
+/** "20 Kasım 2026, Cuma" */
 export function formatLongDate(date: Date = new Date()): string {
-  return format(date, 'd MMMM, EEEE', { locale: tr })
-}
-
-/** "Per, 19 Kas" */
-export function formatHeaderDate(date: Date = new Date()): string {
-  return format(date, 'EEE, d MMM', { locale: tr })
+  return format(date, 'd MMMM yyyy, EEEE', { locale: tr })
 }
 
 /** "19 Kas" */
@@ -43,6 +38,17 @@ export function formatDate(value: string): string {
 /** "19 Kas 2026, 14:05": full timestamp for tooltips and history. */
 export function formatDateTime(value: string): string {
   return format(parseISO(value), 'd MMM yyyy, HH:mm', { locale: tr })
+}
+
+/**
+ * "9 gündür bekliyor", or "bugün gönderildi" when it entered review today (calendar days).
+ * Undefined when `since` is missing or not a valid date, e.g. an older backend during a deploy.
+ */
+export function waitingLabel(since: string | undefined, today: Date = new Date()): string | undefined {
+  if (!since) return undefined
+  const days = differenceInCalendarDays(startOfDay(today), parseISO(since))
+  if (Number.isNaN(days)) return undefined
+  return days <= 0 ? 'bugün gönderildi' : `${days} gündür bekliyor`
 }
 
 /** "2 saat önce" */

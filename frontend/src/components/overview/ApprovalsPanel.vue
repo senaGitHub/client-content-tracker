@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { CheckIcon, CircleCheckIcon, LoaderCircleIcon } from '@lucide/vue'
-import type { ContentResponse } from '@/api'
-import OverdueChip from '@/components/content/OverdueChip.vue'
+import type { ApprovalItem, ContentResponse } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { TYPE_LABELS } from '@/lib/content'
-import { daysUntil, formatShortDate } from '@/lib/format'
+import { daysUntil, formatShortDate, waitingLabel } from '@/lib/format'
 
 defineProps<{
   /** Undefined while loading. */
-  items?: ContentResponse[]
+  items?: ApprovalItem[]
   /** Everything in review (the list shows only the longest-waiting few). */
   total: number
   /** A revision for this item is on its way to the server. */
@@ -31,13 +29,13 @@ const REVIEW_LINK ={ path: '/content', query: { view: 'list', status: 'IN_REVIEW
 
 <template>
   <section aria-labelledby="overview-approvals" class="rounded-card border bg-card px-4 py-[18px] shadow-card">
-    <h2 id="overview-approvals" class="text-lg font-bold">
+    <h2 id="overview-approvals" class="text-section-title">
       Onay bekleyenler <span v-if="items" class="font-medium text-muted-foreground tabular-nums">({{ total }})</span>
     </h2>
     <p class="mt-1 mb-2 text-xs text-muted-foreground">Onayla → yayına alınır · Revizyon → taslağa döner</p>
 
     <ul v-if="!items" aria-hidden="true">
-      <li v-for="n in 3" :key="n" class="flex items-center gap-3 border-t border-divider py-3">
+      <li v-for="n in 4" :key="n" class="flex items-center gap-3 border-t border-divider py-3">
         <Skeleton class="h-[50px] w-[58px] shrink-0 rounded-[9px]" />
         <div class="flex-1 space-y-2">
           <Skeleton class="h-3.5 w-3/4" />
@@ -69,11 +67,17 @@ const REVIEW_LINK ={ path: '/content', query: { view: 'list', status: 'IN_REVIEW
 
           <div class="min-w-0 flex-1">
             <p class="line-clamp-2 text-sm font-bold">{{ item.title }}</p>
-            <p class="mt-px truncate text-xs text-muted-foreground">{{ item.client.name }} • {{ TYPE_LABELS[item.type] }}</p>
-            <OverdueChip v-if="item.overdue" :due-date="item.dueDate" class="mt-1.5" />
-            <span v-else class="mt-1.5 inline-block rounded-sm bg-muted px-2 py-0.5 text-xs font-semibold text-secondary-text">
-              Teslim: {{ dueText(item.dueDate) }}
-            </span>
+            <p class="mt-px truncate text-xs text-muted-foreground">{{ item.client.name }}</p>
+            <!-- How long it has waited for approval, not how late it is: no red in this panel. -->
+            <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span
+                v-if="waitingLabel(item.inReviewSince)"
+                class="inline-block rounded-sm bg-muted px-2 py-0.5 text-xs font-semibold text-secondary-text"
+              >
+                {{ waitingLabel(item.inReviewSince) }}
+              </span>
+              <span class="text-xs text-muted-foreground">Teslim: {{ dueText(item.dueDate) }}</span>
+            </p>
           </div>
 
           <div class="flex shrink-0 flex-col gap-1.5">

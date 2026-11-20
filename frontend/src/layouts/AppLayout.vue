@@ -55,7 +55,7 @@ watch(() => route.fullPath, () => {
         </SheetContent>
       </Sheet>
       <BrandMark compact />
-      <ThemeToggle icon-only class="ml-auto" />
+      <ThemeToggle class="ml-auto" />
     </header>
 
     <!-- Main content sits directly on the page background. -->

@@ -8,6 +8,7 @@ import type { ContentStatus } from '@/api'
 import BrandCover from '@/components/client/BrandCover.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ContentList from '@/components/content/list/ContentList.vue'
+import ThemeToggle from '@/components/layout/ThemeToggle.vue'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
@@ -180,6 +181,13 @@ const chip = 'rounded-full px-2.5 py-[3px] text-xs font-semibold'
           </Button>
         </div>
       </div>
+      <!-- This page has no PageHeader, so the desktop theme toggle sits in the hero's top-right corner. -->
+      <ThemeToggle
+        :class="cn(
+          'absolute top-4 right-4 hidden lg:inline-flex',
+          hasCover && 'bg-white/90 text-black/85 hover:bg-white hover:text-black dark:bg-white/90 dark:hover:bg-white',
+        )"
+      />
     </section>
 
     <!-- Stats -->

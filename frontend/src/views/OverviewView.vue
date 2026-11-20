@@ -1,27 +1,23 @@
 <script setup lang="ts">
-import { CircleAlertIcon, PlusIcon, SearchIcon } from '@lucide/vue'
-import { useDebounceFn } from '@vueuse/core'
+import { CircleAlertIcon, PlusIcon } from '@lucide/vue'
+import { useIntervalFn, useNow } from '@vueuse/core'
 import { computed, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { dashboardApi } from '@/api'
-import type { ContentResponse, ContentStatus, StatusCounts } from '@/api'
+import type { ClientResponse, ContentResponse, ContentStatus, StatusCounts } from '@/api'
+import PageHeader from '@/components/layout/PageHeader.vue'
 import ApprovalsPanel from '@/components/overview/ApprovalsPanel.vue'
 import BrandStrip from '@/components/overview/BrandStrip.vue'
 import ContentFeed from '@/components/overview/ContentFeed.vue'
 import KpiTiles from '@/components/overview/KpiTiles.vue'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
-import { useClientDialog } from '@/composables/useClientDialog'
 import { useContentDialog } from '@/composables/useContentDialog'
 import { useDeferredApprove } from '@/composables/useDeferredApprove'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { useStatusChange } from '@/composables/useStatusChange'
-import { formatHeaderDate } from '@/lib/format'
+import { formatLongDate } from '@/lib/format'
 
-const router = useRouter()
 const { openNew, onSaved } = useContentDialog()
-const { onSaved: onClientSaved } = useClientDialog()
 
 // ---- Header ---------------------------------------------------------------------------------
 
@@ -32,38 +28,24 @@ function greetingFor(hour: number): string {
   if (hour >= 18 && hour < 22) return 'İyi akşamlar'
   return 'İyi geceler'
 }
-const greeting = greetingFor(new Date().getHours())
-const today = formatHeaderDate()
-
-// The box filters the feed as you type; Enter opens the full list with the same search.
-const search = ref('')
-const feedQuery = ref('')
-const commitSearch = useDebounceFn((value: string) => (feedQuery.value = value), 300)
-watch(search, (value) => void commitSearch(value))
-
-function openSearchInList() {
-  const q = search.value.trim()
-  void router.push({ path: '/content', query: q ? { view: 'list', q } : { view: 'list' } })
-}
-function clearSearch() {
-  search.value = ''
-  feedQuery.value = ''
-}
+// Ticks once a minute so a tab left open keeps the right greeting and date. useIntervalFn is
+// tied to this component, so the timer is cleared when the page unmounts.
+const now = useNow({ scheduler: (tick) => useIntervalFn(tick, 60_000) })
+const greeting = computed(() => greetingFor(now.value.getHours()))
+/** "20 Kasım 2026, Cuma" */
+const today = computed(() => formatLongDate(now.value))
 
 // ---- Data -----------------------------------------------------------------------------------
 
 const dashboard = useAsyncData((signal) => dashboardApi.get(signal))
-/** Tells the feed to reload when something outside it changed the data. */
-const feedVersion = ref(0)
+const feed = ref<InstanceType<typeof ContentFeed>>()
 
+/** Reloads everything on the page; awaited, so a committed approval stays "published" until fresh data is in. */
 async function refreshAll() {
-  feedVersion.value++
   void refreshNavCounts()
-  await dashboard.reload()
+  await Promise.all([dashboard.reload(), feed.value?.refresh()])
 }
 onSaved(() => void refreshAll())
-// A new brand only changes the brand cards and the feed's brand filter, both from the dashboard.
-onClientSaved(() => void dashboard.reload())
 
 // ---- Approvals ------------------------------------------------------------------------------
 
@@ -99,6 +81,27 @@ const totals = computed<StatusCounts | undefined>(() => {
   }
 })
 
+/** Brand counts, with waiting approvals already moved from Onayda to Yayında (like `totals`). */
+const clients = computed<ClientResponse[] | undefined>(() => {
+  const list = dashboard.data.value?.clients
+  const waiting = approval.pendingItems.value
+  if (!list || waiting.length === 0) return list
+  return list.map((client) => {
+    const mine = waiting.filter((item) => item.client.id === client.id)
+    if (mine.length === 0) return client
+    const c = client.counts
+    return {
+      ...client,
+      counts: {
+        ...c,
+        inReview: c.inReview - mine.length,
+        published: c.published + mine.length,
+        overdue: c.overdue - mine.filter((item) => item.overdue).length,
+      },
+    }
+  })
+})
+
 const clientOptions = computed(() =>
   (dashboard.data.value?.clients ?? []).map(({ id, name, coverImageUrl }) => ({ id, name, coverImageUrl })),
 )
@@ -106,42 +109,18 @@ const clientOptions = computed(() =>
 
 <template>
   <div class="flex flex-col gap-5">
-    <header class="flex flex-wrap items-center justify-between gap-4">
-      <div class="min-w-0">
-        <h1 class="text-[28px] leading-tight font-extrabold tracking-[-0.025em] sm:text-[30px]">{{ greeting }}</h1>
-        <p v-if="totals" class="mt-1 text-base text-secondary-text">
-          <template v-if="totals.inReview > 0">Bugün <b class="font-semibold text-foreground">{{ totals.inReview }} içerik</b> onayını bekliyor</template>
-          <template v-else>Onay bekleyen içerik yok</template>
-          <template v-if="totals.overdue > 0">
-            · <span class="font-semibold text-overdue-text">{{ totals.overdue }} içerik gecikti</span>
-          </template>
-        </p>
-        <Skeleton v-else-if="dashboard.loading.value" class="mt-2.5 h-4 w-72 max-w-full" />
-      </div>
-
-      <div class="flex w-full flex-wrap items-center gap-3.5 sm:w-auto">
-        <label
-          role="search"
-          class="flex h-10 w-full items-center gap-2.5 rounded-lg border border-input bg-card px-3.5 transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 sm:w-[260px]"
-        >
-          <SearchIcon class="size-[17px] shrink-0 text-foreground" aria-hidden="true" />
-          <span class="sr-only">İçerik ara</span>
-          <input
-            v-model="search"
-            type="search"
-            placeholder="İçerik ara…"
-            class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
-            @keydown.enter.prevent="openSearchInList"
-            @keydown.esc="clearSearch"
-          />
-        </label>
-        <span class="text-sm text-muted-foreground">{{ today }}</span>
-        <Button size="lg" class="ml-auto sm:ml-0" @click="openNew()">
+    <!-- The page's flex gap does the spacing, so the header's own bottom margin is dropped. -->
+    <PageHeader :title="greeting" class="mb-0!">
+      <template #description>
+        <span class="text-muted-foreground">{{ today }}</span>
+      </template>
+      <template #actions>
+        <Button size="lg" @click="openNew()">
           <PlusIcon :stroke-width="2.4" aria-hidden="true" />
           Yeni İçerik
         </Button>
-      </div>
-    </header>
+      </template>
+    </PageHeader>
 
     <div
       v-if="dashboard.error.value && !dashboard.data.value"
@@ -159,13 +138,12 @@ const clientOptions = computed(() =>
 
     <div class="grid grid-cols-1 items-start gap-[18px] min-[1340px]:grid-cols-[minmax(0,1fr)_360px]">
       <div class="flex min-w-0 flex-col gap-[18px]">
-        <BrandStrip v-if="!dashboard.error.value || dashboard.data.value" :clients="dashboard.data.value?.clients" />
+        <BrandStrip v-if="!dashboard.error.value || dashboard.data.value" :clients="clients" />
         <ContentFeed
+          ref="feed"
           :clients="clientOptions"
-          :q="feedQuery"
-          :version="feedVersion"
+          :publishing="approval.pendingItems.value"
           @changed="dashboard.reload()"
-          @clear-search="clearSearch"
         />
       </div>
 

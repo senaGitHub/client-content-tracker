@@ -122,6 +122,12 @@ export interface DashboardResponse {
   totals: StatusCounts
   metrics: DashboardMetrics
   clients: ClientResponse[]
-  /** The 5 longest-waiting items in review, longest first; the full count is totals.inReview. */
-  approvals: ContentResponse[]
+  /** The 4 longest-waiting items in review, longest first; the full count is totals.inReview. */
+  approvals: ApprovalItem[]
 }
+
+/**
+ * A content response plus when it entered review (ISO instant, from the activity log).
+ * Optional: an older backend (e.g. mid-deploy) does not send it.
+ */
+export type ApprovalItem = ContentResponse & { inReviewSince?: string }

@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, reactive } from 'vue'
 import { toast } from 'vue-sonner'
 import { contentsApi } from '@/api'
 import type { ContentResponse } from '@/api'
-import { refreshNavCounts } from '@/composables/useNavCounts'
+import { refreshNavCounts, trackPublishing } from '@/composables/useNavCounts'
 import { statusChangeError } from '@/lib/errors'
 
 /** How long "Geri al" stays possible before the PATCH is sent. */
@@ -52,6 +52,7 @@ export function useDeferredApprove(options: Options = {}) {
     })
     const timer = setTimeout(() => void send(item.id), APPROVE_DELAY_MS)
     pending.set(item.id, { item, phase: 'waiting', timer, toastId })
+    trackPublishing(item.id, true)
     options.onStart?.(item)
   }
 
@@ -60,6 +61,7 @@ export function useDeferredApprove(options: Options = {}) {
     if (!entry || entry.phase !== 'waiting') return
     clearTimeout(entry.timer)
     pending.delete(id)
+    trackPublishing(id, false)
     toast(`${entry.item.title} tekrar Onayda durumunda`)
     if (alive) options.onCancel?.(entry.item)
   }
@@ -73,8 +75,9 @@ export function useDeferredApprove(options: Options = {}) {
     toast.dismiss(entry.toastId)
     try {
       const updated = await contentsApi.changeStatus(id, 'PUBLISHED', { keepalive })
-      void refreshNavCounts()
-      if (alive) await options.onCommitted?.(updated)
+      // Wait for fresh counts and views before the item stops counting as pending (finally),
+      // so nothing flips back to the old state for a moment.
+      await Promise.all([refreshNavCounts(), alive ? options.onCommitted?.(updated) : undefined])
     } catch (e) {
       const { title, description } = statusChangeError(e)
       const hint = options.failureHint ? ` ${options.failureHint}` : ''
@@ -82,6 +85,7 @@ export function useDeferredApprove(options: Options = {}) {
       if (alive) options.onFailed?.(entry.item)
     } finally {
       pending.delete(id)
+      trackPublishing(id, false)
     }
   }
 

@@ -233,6 +233,38 @@
   --shadow-toast: var(--elev-toast);
 }
 
+/*
+ * Type scale, in one place: text-page-title, text-section-title, text-nav, text-logo, text-kpi.
+ * Each sets size, line height, weight and tracking together; a font-* utility still overrides
+ * the weight (e.g. the active nav item is semibold). Body copy uses text-sm (14px).
+ * Keep the token names in sync with TYPE_SCALE in src/lib/utils.ts, which registers them with
+ * tailwind-merge as font sizes so cn() doesn't drop them next to text colour classes.
+ */
+@theme {
+  --text-page-title: 24px;
+  --text-page-title--line-height: 1.25;
+  --text-page-title--font-weight: 700;
+  --text-page-title--letter-spacing: -0.02em;
+
+  --text-section-title: 16px;
+  --text-section-title--line-height: 1.4;
+  --text-section-title--font-weight: 600;
+
+  --text-nav: 14px;
+  --text-nav--line-height: 1.4;
+  --text-nav--font-weight: 500;
+
+  --text-logo: 18px;
+  --text-logo--line-height: 1;
+  --text-logo--font-weight: 800;
+  --text-logo--letter-spacing: -0.02em;
+
+  --text-kpi: 28px;
+  --text-kpi--line-height: 1.15;
+  --text-kpi--font-weight: 700;
+  --text-kpi--letter-spacing: -0.02em;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

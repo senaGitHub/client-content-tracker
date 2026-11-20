@@ -11,4 +11,3 @@ All photos are from [Unsplash](https://unsplash.com) and free to use under the [
 | `covers/antalya-cliffs.jpg` | [Rocky cliffs frame a sparkling ocean inlet](https://unsplash.com/photos/PcmXa54jfoA) | [engin akyurt](https://unsplash.com/@enginakyurt) |
 | `covers/seaside-yoga.jpg` | [Woman doing yoga near calm water at golden hour](https://unsplash.com/photos/2hKNq2rX93g) | [Lāsma Artmane](https://unsplash.com/@lasmaa) |
 | `covers/olive-table.jpg` | [Table setting with an olive branch](https://unsplash.com/photos/K_DV89F2r_k) | [micheile henderson](https://unsplash.com/@micheile) |
-| `sidebar-pool-edge.jpg` | [Terracotta tiled edge of a swimming pool](https://unsplash.com/photos/GmJ7m4wZ3fU) | [Joachim Lesne](https://unsplash.com/@joaching) |

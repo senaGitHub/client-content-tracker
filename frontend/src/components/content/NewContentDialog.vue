@@ -3,6 +3,7 @@ import { XIcon } from '@lucide/vue'
 import { ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { contentsApi } from '@/api'
+import ChannelSelect from '@/components/content/form/ChannelSelect.vue'
 import TypePicker from '@/components/content/form/TypePicker.vue'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { useClientOptions } from '@/composables/useClientOptions'
 import { notifyContentSaved, useContentDialog } from '@/composables/useContentDialog'
-import { CHANNEL_SUGGESTIONS, useContentForm } from '@/composables/useContentForm'
+import { useContentForm } from '@/composables/useContentForm'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { errorMessage } from '@/lib/errors'
 
@@ -125,19 +126,12 @@ const optional = 'font-normal text-muted-foreground'
 
         <div class="grid gap-1.5">
           <Label :for="id('channel')" :class="labelClass">Kanal <span :class="optional">(isteğe bağlı)</span></Label>
-          <Input
+          <ChannelSelect
             :id="id('channel')"
             v-model="form.channel"
-            maxlength="60"
-            list="new-content-channels"
-            autocomplete="off"
-            placeholder="ör. Instagram"
             :aria-invalid="!!errors.channel"
             :aria-describedby="describedBy('channel')"
           />
-          <datalist id="new-content-channels">
-            <option v-for="channel in CHANNEL_SUGGESTIONS" :key="channel" :value="channel" />
-          </datalist>
           <p v-if="errors.channel" :id="`${id('channel')}-error`" class="text-xs font-medium text-destructive">{{ errors.channel }}</p>
         </div>
 

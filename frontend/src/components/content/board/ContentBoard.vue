@@ -277,8 +277,7 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
         <div v-if="loading" class="flex flex-col gap-2.5" aria-hidden="true">
           <div v-for="n in 3" :key="n" class="flex flex-col gap-2.5 rounded-2xl border bg-card p-3">
             <div class="flex gap-2.5">
-              <Skeleton class="h-[46px] w-[62px] rounded-[9px]" />
-              <div class="flex-1 space-y-2 pt-1">
+              <div class="flex-1 space-y-2">
                 <Skeleton class="h-3.5 w-4/5" />
                 <Skeleton class="h-3 w-1/2" />
               </div>

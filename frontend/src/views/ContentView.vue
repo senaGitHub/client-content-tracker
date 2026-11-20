@@ -19,8 +19,8 @@ const { state, filters, hasFilters, update, clearFilters } = useContentQuery()
 const { openNew, onSaved } = useContentDialog()
 
 const VIEWS: { value: ContentView; label: string }[] = [
-  { value: 'board', label: 'Pano' },
   { value: 'list', label: 'Liste' },
+  { value: 'board', label: 'Pano' },
 ]
 
 function setView(view: ContentView) {

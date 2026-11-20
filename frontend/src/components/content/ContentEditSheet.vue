@@ -7,6 +7,7 @@ import { contentsApi } from '@/api'
 import type { ActivityResponse, ContentResponse, ContentStatus } from '@/api'
 import OverdueChip from '@/components/content/OverdueChip.vue'
 import StatusBadge from '@/components/content/StatusBadge.vue'
+import ChannelSelect from '@/components/content/form/ChannelSelect.vue'
 import TypePicker from '@/components/content/form/TypePicker.vue'
 import { Button } from '@/components/ui/button'
 import type { ButtonVariants } from '@/components/ui/button'
@@ -19,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { useClientOptions } from '@/composables/useClientOptions'
 import { notifyContentSaved, useContentDialog } from '@/composables/useContentDialog'
-import { CHANNEL_SUGGESTIONS, useContentForm } from '@/composables/useContentForm'
+import { useContentForm } from '@/composables/useContentForm'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { asPublishing, useStatusChange } from '@/composables/useStatusChange'
 import type { PlacePhase } from '@/composables/useStatusChange'
@@ -307,19 +308,12 @@ const optional = 'font-normal text-muted-foreground'
 
             <div class="grid gap-1.5">
               <Label :for="id('channel')" :class="labelClass">Kanal <span :class="optional">(isteğe bağlı)</span></Label>
-              <Input
+              <ChannelSelect
                 :id="id('channel')"
                 v-model="form.channel"
-                maxlength="60"
-                list="edit-content-channels"
-                autocomplete="off"
-                placeholder="ör. Instagram"
                 :aria-invalid="!!errors.channel"
                 :aria-describedby="describedBy('channel')"
               />
-              <datalist id="edit-content-channels">
-                <option v-for="channel in CHANNEL_SUGGESTIONS" :key="channel" :value="channel" />
-              </datalist>
               <p v-if="errors.channel" :id="`${id('channel')}-error`" class="text-xs font-medium text-destructive">{{ errors.channel }}</p>
             </div>
 

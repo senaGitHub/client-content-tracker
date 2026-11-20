@@ -8,7 +8,20 @@ export type ContentField = 'clientId' | 'title' | 'type' | 'channel' | 'dueDate'
 // Order matters: the first invalid field in this order gets focus.
 const FIELDS: ContentField[] = ['title', 'clientId', 'type', 'channel', 'dueDate', 'notes']
 
-export const CHANNEL_SUGGESTIONS = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Website', 'Blog', 'Newsletter']
+/**
+ * The channels the Kanal field offers (ChannelSelect). Includes every channel the demo seeder uses
+ * (Instagram, Facebook, LinkedIn, TikTok, YouTube, Web sitesi).
+ */
+export const CHANNEL_SUGGESTIONS = [
+  'Instagram',
+  'Facebook',
+  'LinkedIn',
+  'TikTok',
+  'YouTube',
+  'Web sitesi',
+  'Blog',
+  'E-bülten',
+]
 
 /**
  * Form state shared by the New content dialog and the Edit sheet. Status is deliberately not part

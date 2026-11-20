@@ -20,16 +20,6 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
     )"
   >
     <div class="flex gap-2.5">
-      <img
-        v-if="item.client.coverImageUrl"
-        :src="item.client.coverImageUrl"
-        alt=""
-        loading="lazy"
-        draggable="false"
-        class="h-[46px] w-[62px] shrink-0 rounded-[9px] object-cover"
-      />
-      <span v-else class="h-[46px] w-[62px] shrink-0 rounded-[9px] bg-muted" aria-hidden="true" />
-
       <div class="min-w-0 flex-1">
         <!-- The title button stretches over the card, so the whole card opens the edit sheet. -->
         <h3 class="text-sm leading-[1.3] font-bold break-words text-foreground">
@@ -41,6 +31,8 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
             {{ item.title }}
           </button>
         </h3>
+        <!-- As in the list: the channel under the title, only when there is one. -->
+        <p v-if="item.channel" class="mt-0.5 truncate text-xs text-muted-foreground">{{ item.channel }}</p>
         <p class="mt-0.5 truncate text-[13px] text-muted-foreground">{{ item.client.name }}</p>
       </div>
 

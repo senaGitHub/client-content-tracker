@@ -3,11 +3,10 @@ import { CircleAlertIcon, FileTextIcon, SearchXIcon } from '@lucide/vue'
 import { computed, watch } from 'vue'
 import { contentsApi } from '@/api'
 import type { ContentFilters, ContentResponse, ContentStatus } from '@/api'
-import BrandCover from '@/components/client/BrandCover.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ContentActionsMenu from '@/components/content/ContentActionsMenu.vue'
 import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
-import StatusMenu from '@/components/content/StatusMenu.vue'
+import StatusBadge from '@/components/content/StatusBadge.vue'
 import { Button } from '@/components/ui/button'
 import {
   Pagination,
@@ -183,12 +182,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
 
         <tbody v-if="showSkeleton">
           <tr v-for="n in 8" :key="n" class="border-t border-divider" aria-hidden="true">
-            <td class="p-2.5">
-              <div class="flex items-center gap-3">
-                <Skeleton class="h-[30px] w-11 rounded-sm" />
-                <Skeleton class="h-3.5 w-48" />
-              </div>
-            </td>
+            <td class="p-2.5"><Skeleton class="h-3.5 w-48" /></td>
             <td v-if="!brand" class="p-2.5"><Skeleton class="h-3.5 w-28" /></td>
             <td class="p-2.5"><Skeleton class="h-3.5 w-24" /></td>
             <td class="p-2.5"><Skeleton class="h-3.5 w-20" /></td>
@@ -206,23 +200,16 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
             @click="openEdit(item)"
           >
             <td class="max-w-[360px] p-2.5">
-              <div class="flex items-center gap-3">
-                <BrandCover
-                  :name="item.client.name"
-                  :url="item.client.coverImageUrl"
-                  class="h-[30px] w-11 shrink-0 rounded-sm"
-                  initials-class="text-[11px]"
-                />
-                <!-- A real button so keyboard users can open the sheet; the whole row is clickable too. -->
-                <button
-                  type="button"
-                  class="line-clamp-2 min-w-0 rounded-sm text-left leading-snug font-semibold break-words outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                  :title="item.title"
-                  @click.stop="openEdit(item)"
-                >
-                  {{ item.title }}
-                </button>
-              </div>
+              <!-- A real button so keyboard users can open the sheet; the whole row is clickable too. -->
+              <button
+                type="button"
+                class="line-clamp-2 min-w-0 rounded-sm text-left leading-snug font-semibold break-words outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                :title="item.title"
+                @click.stop="openEdit(item)"
+              >
+                {{ item.title }}
+              </button>
+              <p v-if="item.channel" class="mt-0.5 truncate text-xs text-muted-foreground">{{ item.channel }}</p>
             </td>
             <td v-if="!brand" class="max-w-48 p-2.5 leading-snug break-words">{{ item.client.name }}</td>
             <td class="p-2.5">
@@ -234,8 +221,9 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
                 {{ dueHint(item) }}
               </span>
             </td>
-            <td class="p-2.5" @click.stop>
-              <StatusMenu :item="item" :pending="isPending(item.id)" @move="(status) => move(item, status)" />
+            <!-- Read-only here: status changes go through the ⋯ menu (which also shows the pending spinner). -->
+            <td class="p-2.5">
+              <StatusBadge :status="item.status" uniform />
             </td>
             <td v-if="!brand" class="p-2.5 text-[13px] whitespace-nowrap text-muted-foreground">
               <time :datetime="item.updatedAt" :title="formatDateTime(item.updatedAt)">{{ formatUpdated(item.updatedAt) }}</time>
@@ -257,21 +245,16 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
     <!-- Mobile: one compact row per item -->
     <ul class="divide-y divide-divider md:hidden">
       <template v-if="showSkeleton">
-        <li v-for="n in 5" :key="n" class="flex items-center gap-3 py-3" aria-hidden="true">
-          <Skeleton class="h-10 w-14 rounded-md" />
+        <li v-for="n in 5" :key="n" class="flex items-center gap-2 py-3" aria-hidden="true">
           <div class="flex-1 space-y-2">
             <Skeleton class="h-3.5 w-3/4" />
             <Skeleton class="h-3 w-1/3" />
           </div>
+          <Skeleton class="h-6 w-20 rounded-full" />
+          <Skeleton class="size-8 rounded-lg" />
         </li>
       </template>
-      <li v-for="item in data?.items" v-else :key="item.id" class="flex items-center gap-3 py-3">
-        <BrandCover
-          :name="item.client.name"
-          :url="item.client.coverImageUrl"
-          class="h-10 w-14 shrink-0 rounded-md"
-          initials-class="text-sm"
-        />
+      <li v-for="item in data?.items" v-else :key="item.id" class="flex items-center gap-2 py-3">
         <div class="min-w-0 flex-1">
           <button
             type="button"
@@ -282,11 +265,20 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
           </button>
           <p class="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
             <ContentTypeIcon :type="item.type" class="mr-1 align-[-4px]" />
+            <template v-if="item.channel">{{ item.channel }}&nbsp;· </template>
             <template v-if="!brand">{{ item.client.name }}&nbsp;· </template>
             <span :class="cn('whitespace-nowrap', item.overdue && 'font-semibold text-overdue-text')">{{ dueHint(item) ?? formatShortDate(item.dueDate) }}</span>
           </p>
         </div>
-        <StatusMenu :item="item" :pending="isPending(item.id)" @move="(status) => move(item, status)" />
+        <!-- Same as the table: a read-only badge, and status changes through the ⋯ menu. -->
+        <StatusBadge :status="item.status" uniform />
+        <ContentActionsMenu
+          :item="item"
+          :pending="isPending(item.id)"
+          class="-mr-1.5"
+          @open="openEdit(item)"
+          @move="(status) => move(item, status)"
+        />
       </li>
     </ul>
 

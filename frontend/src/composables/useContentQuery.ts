@@ -30,11 +30,12 @@ function first(value: LocationQuery[string]): string | undefined {
   return v ?? undefined
 }
 
+/** The view last picked on this device; List when nothing was picked yet (or storage is blocked). */
 function savedView(): ContentView {
   try {
-    return localStorage.getItem(VIEW_STORAGE_KEY) === 'list' ? 'list' : 'board'
+    return localStorage.getItem(VIEW_STORAGE_KEY) === 'board' ? 'board' : 'list'
   } catch {
-    return 'board'
+    return 'list'
   }
 }
 

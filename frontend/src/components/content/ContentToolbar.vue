@@ -94,7 +94,6 @@ function clearSearch() {
           prefix="Teslim: "
           label="Teslim"
           size="sm"
-          :tone="query.due === 'overdue' ? 'overdue' : 'coral'"
           class="col-span-2 sm:col-span-1"
           @update:model-value="(v) => emit('update', { due: (v as DueFilter | undefined) ?? 'all' })"
         />

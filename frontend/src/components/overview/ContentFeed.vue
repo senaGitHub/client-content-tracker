@@ -177,7 +177,6 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
           prefix="Teslim: "
           label="Teslim"
           size="sm"
-          :tone="due === 'overdue' ? 'overdue' : 'coral'"
           class="flex-auto sm:flex-none"
           @update:model-value="(v) => (due = (v as DueFilter | undefined) ?? 'all')"
         />

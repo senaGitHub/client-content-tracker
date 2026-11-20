@@ -35,8 +35,7 @@ const options = computed(() => {
     <SelectTrigger v-bind="$attrs" class="w-full">
       <SelectValue />
     </SelectTrigger>
-    <!-- Opens below the field, like FilterSelect, at least as wide as it. -->
-    <SelectContent position="popper" side="bottom" align="start" class="min-w-(--reka-select-trigger-width)">
+    <SelectContent>
       <SelectItem :value="NONE">Kanal yok</SelectItem>
       <SelectItem v-for="option in options" :key="option" :value="option">{{ option }}</SelectItem>
     </SelectContent>

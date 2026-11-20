@@ -8,6 +8,7 @@ import type { ContentStatus } from '@/api'
 import BrandCover from '@/components/client/BrandCover.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ContentList from '@/components/content/list/ContentList.vue'
+import StatusTabs from '@/components/content/StatusTabs.vue'
 import ThemeToggle from '@/components/layout/ThemeToggle.vue'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -100,8 +101,11 @@ const stats = computed(() => {
 </script>
 
 <template>
-  <!-- This page has no PageHeader, so the desktop theme toggle sits at the end of the back-link row. -->
-  <div class="mb-5 flex items-center justify-between gap-3">
+  <!--
+    This page has no PageHeader, so the desktop theme toggle sits at the end of the back-link row.
+    On desktop the row is 32px tall, like the sidebar's logo row, so the two line up.
+  -->
+  <div class="mb-5 flex items-center justify-between gap-3 lg:h-8">
     <RouterLink
       to="/clients"
       class="inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -210,21 +214,7 @@ const stats = computed(() => {
     <section aria-labelledby="brand-contents" class="flex flex-col gap-3.5">
       <div class="flex flex-wrap items-center gap-x-3.5 gap-y-2">
         <h2 id="brand-contents" class="text-section-title">İçerikler</h2>
-        <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
-          <button
-            v-for="tab in tabs"
-            :key="tab.label"
-            type="button"
-            :aria-pressed="status === tab.value"
-            :class="cn(
-              'shrink-0 rounded-lg px-3.5 py-2 text-sm whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-              status === tab.value ? 'bg-coral-soft font-semibold text-coral-text' : 'font-medium text-secondary-text hover:bg-muted',
-            )"
-            @click="update({ status: tab.value })"
-          >
-            {{ tab.label }}<span v-if="tab.count !== undefined" class="tabular-nums"> ({{ tab.count }})</span>
-          </button>
-        </div>
+        <StatusTabs :tabs="tabs" :model-value="status" @update:model-value="(value) => update({ status: value })" />
       </div>
 
       <ContentList

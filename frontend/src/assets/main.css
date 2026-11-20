@@ -31,9 +31,12 @@
   --text-secondary: #3b3331;
   --muted-foreground: #6f6461;
 
-  /* shadcn roles */
-  --primary: #1c1716;
+  /* shadcn roles. Primary buttons use the logo coral with white text in both themes. A design
+     decision: ~3.5:1, below AA's 4.5:1 (see README). Hover/active darkens slightly to #D85A37.
+     Only the default Button variant uses them. */
+  --primary: #e0623f;
   --primary-foreground: #ffffff;
+  --primary-hover: #d85a37;
   --secondary: #f3ece9;
   --secondary-foreground: #1c1716;
   --muted: #f3ece9;
@@ -48,7 +51,7 @@
   --coral-text: #ab4427;
   --coral-soft: #fde9e2;
   --nav-active: #fbddd4;
-  --coral-solid: #c74f2e; /* badge background that keeps white text readable */
+  --coral-solid: #e0623f; /* same logo coral + white as the primary button (~3.5:1, see README) */
   --coral-solid-foreground: #ffffff;
   --logo-from: #f4895a;
   --logo-to: #e0623f;
@@ -111,8 +114,9 @@
   --text-secondary: #d6ccc8;
   --muted-foreground: #a89d99;
 
-  --primary: #f3edea;
-  --primary-foreground: #1c1716;
+  --primary: #e0623f;
+  --primary-foreground: #ffffff;
+  --primary-hover: #d85a37;
   --secondary: #29221f;
   --secondary-foreground: #f3edea;
   --muted: #29221f;
@@ -125,8 +129,9 @@
   --coral-text: #f5a58c;
   --coral-soft: #3a221a;
   --nav-active: #44271d;
-  --coral-solid: #f08a6c;
-  --coral-solid-foreground: #1c1716;
+  /* Same as light and as the primary button: one coral everywhere. */
+  --coral-solid: #e0623f;
+  --coral-solid-foreground: #ffffff;
 
   --overdue: #d92d20;
   --overdue-text: #f97066;
@@ -177,6 +182,7 @@
   --color-secondary-text: var(--text-secondary);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -302,6 +308,16 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "cv11", "ss01";
   }
+}
+
+/*
+ * A modal dialog or sheet sets pointer-events: none on <body>, which the toaster inherits. Toasts
+ * must stay clickable then ("Geri al" after a status change in the edit sheet). Closing the modal
+ * on that click is prevented in DialogContent / SheetContent (lib/overlay.ts).
+ */
+[data-sonner-toaster],
+[data-sonner-toaster] [data-sonner-toast] {
+  pointer-events: auto;
 }
 
 /*

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ClientResponse } from '@/api'
+import BrandCover from '@/components/client/BrandCover.vue'
 import { Skeleton } from '@/components/ui/skeleton'
 import { vHighlight } from '@/composables/useHighlight'
 import { clientLink } from '@/lib/content'
+import { cn } from '@/lib/utils'
 
 const props = defineProps<{ clients?: ClientResponse[] }>()
 
@@ -42,27 +44,43 @@ const featured = computed(() =>
         :key="client.id"
         v-highlight:client="client.id"
         :to="clientLink(client.id)"
-        class="group relative block h-[120px] overflow-hidden rounded-2xl bg-muted text-white outline-none focus-visible:ring-3 focus-visible:ring-ring/60"
+        :class="cn(
+          'group relative block h-[120px] overflow-hidden rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/60',
+          client.coverImageUrl ? 'text-white' : 'text-foreground',
+        )"
       >
-        <img
-          v-if="client.coverImageUrl"
-          :src="client.coverImageUrl"
-          alt=""
-          loading="lazy"
-          class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        <!-- The photo, or (without one) the same coral-soft tile with initials as the brand card and hero. -->
+        <BrandCover
+          :name="client.name"
+          :url="client.coverImageUrl"
+          zoom
+          class="absolute inset-0 size-full"
+          initials-class="mt-3.5 mr-4 ml-auto self-start text-[34px] opacity-70"
         />
-        <!-- Dark scrim so the name and chips stay readable on any photo. -->
-        <span class="absolute inset-0 bg-linear-to-b from-transparent from-30% to-black/70" aria-hidden="true" />
+        <!-- Dark scrim only over photos, so the white name and chips stay readable. -->
+        <span
+          v-if="client.coverImageUrl"
+          class="absolute inset-0 bg-linear-to-b from-transparent from-30% to-black/70"
+          aria-hidden="true"
+        />
         <span class="absolute right-3.5 bottom-3 left-4">
           <span class="block truncate text-[17px] font-bold">{{ client.name }}</span>
           <span class="mt-2 flex flex-wrap items-center gap-1.5">
             <span v-if="client.counts.overdue" class="rounded-full bg-overdue px-2.5 py-0.5 text-xs font-semibold text-white">
               {{ client.counts.overdue }} gecikmiş
             </span>
-            <span v-if="client.counts.inReview" class="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-black/85">
+            <span
+              v-if="client.counts.inReview"
+              :class="cn(
+                'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                client.coverImageUrl ? 'bg-white/90 text-black/85' : 'bg-review text-review-foreground',
+              )"
+            >
               {{ client.counts.inReview }} onayda
             </span>
-            <span class="ml-auto text-xs opacity-90">{{ client.counts.total }} içerik</span>
+            <span :class="cn('ml-auto text-xs', client.coverImageUrl ? 'opacity-90' : 'text-secondary-text')">
+              {{ client.counts.total }} içerik
+            </span>
           </span>
         </span>
       </RouterLink>

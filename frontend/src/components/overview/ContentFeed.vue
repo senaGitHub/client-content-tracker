@@ -9,6 +9,7 @@ import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
 import FilterSelect from '@/components/content/FilterSelect.vue'
 import StatusBadge from '@/components/content/StatusBadge.vue'
 import StatusMenu from '@/components/content/StatusMenu.vue'
+import StatusTabs from '@/components/content/StatusTabs.vue'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/composables/useAsyncData'
@@ -136,27 +137,16 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
 
 <template>
   <section aria-labelledby="overview-feed">
-    <div class="mb-2.5 flex flex-wrap items-center gap-3">
-      <h2 id="overview-feed" class="mr-1.5 text-section-title">İçerik akışı</h2>
+    <!-- Its own line, like the other section headings. -->
+    <h2 id="overview-feed" class="mb-2.5 text-section-title">İçerik akışı</h2>
 
-      <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 flex max-w-full gap-0.5 overflow-x-auto px-1">
-        <button
-          v-for="tab in tabs"
-          :key="tab.label"
-          type="button"
-          :aria-pressed="status === tab.value"
-          :class="cn(
-            'shrink-0 rounded-lg px-3.5 py-2 text-sm whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-            status === tab.value ? 'bg-coral-soft font-semibold text-coral-text' : 'font-medium text-secondary-text hover:bg-muted',
-          )"
-          @click="status = tab.value"
-        >
-          {{ tab.label }}<span v-if="tab.count !== undefined" class="tabular-nums"> ({{ tab.count }})</span>
-        </button>
-      </div>
+    <!-- Tabs left, filters right; when they do not fit, the filters wrap to the next line, left-aligned
+         (justify-between keeps a lone item at the start). -->
+    <div class="mb-2.5 flex flex-wrap items-center justify-between gap-3">
+      <StatusTabs :tabs="tabs" :model-value="status" @update:model-value="(value) => (status = value)" />
 
-      <!-- Compact filters (the Content page's FilterSelect, size sm): as wide as their text; they wrap below the tabs when space runs out. -->
-      <div class="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
+      <!-- Compact filters (FilterSelect size sm), as wide as their text. -->
+      <div class="flex w-full flex-wrap gap-2 sm:w-auto">
         <FilterSelect
           :model-value="clientId ? String(clientId) : undefined"
           :options="clientOptions"

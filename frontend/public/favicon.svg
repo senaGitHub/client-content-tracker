@@ -1,6 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#1D5C67"/>
-  <g stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(6 6) scale(0.8333)">
-    <path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/>
+  <!-- Same as the sidebar's logo tile (BrandMark): coral gradient at 140deg (--logo-from → --logo-to), radius 10/32. -->
+  <defs>
+    <linearGradient id="tile" x1="0.18" y1="0.12" x2="0.82" y2="0.88">
+      <stop offset="0" stop-color="#F4895A"/>
+      <stop offset="1" stop-color="#E0623F"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="10" fill="url(#tile)"/>
+  <!-- lucide Anchor (as installed), a bit larger and bolder than in the sidebar so it still reads at 16px. -->
+  <g stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="translate(6 6) scale(0.8333)">
+    <path d="M12 6v16"/>
+    <path d="m19 13 2-1a9 9 0 0 1-18 0l2 1"/>
+    <path d="M9 11h6"/>
+    <circle cx="12" cy="4" r="2"/>
   </g>
 </svg>

@@ -60,7 +60,9 @@ watch(() => route.fullPath, () => {
 
     <!-- Main content sits directly on the page background. -->
     <main id="main" class="min-w-0 flex-1">
-      <div class="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-[30px] lg:pt-[26px] lg:pb-7">
+      <!-- lg:pt-[30px] matches the sidebar's top padding (AppSidebar pt-[30px]); with 32px title rows the page
+           title and the "Harbour" logo row share one centre line. -->
+      <div class="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-[30px] lg:pt-[30px] lg:pb-7">
         <RouterView />
       </div>
     </main>

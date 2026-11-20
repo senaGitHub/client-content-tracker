@@ -7,12 +7,18 @@ import FilterSelect from '@/components/content/FilterSelect.vue'
 import { useClientOptions } from '@/composables/useClientOptions'
 import type { ContentQuery, DueFilter } from '@/composables/useContentQuery'
 import { DUE_OPTIONS, TYPE_LABELS, TYPE_ORDER } from '@/lib/content'
+import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   query: ContentQuery
   hasFilters: boolean
   /** "N sonuç" on the right; undefined while unknown. */
   resultCount?: number
+  /**
+   * Search on the left, filters on the right (the board, which has no status tabs). The filters
+   * still wrap under the search when there is no room (justify-between keeps a lone item left).
+   */
+  spread?: boolean
 }>()
 const emit = defineEmits<{ update: [patch: Partial<ContentQuery>]; clear: [] }>()
 
@@ -39,11 +45,11 @@ function clearSearch() {
 </script>
 
 <template>
-  <div role="search" aria-label="İçerikleri filtrele" class="flex flex-wrap items-center gap-3">
+  <div role="search" aria-label="İçerikleri filtrele" :class="cn('flex flex-wrap items-center gap-3', spread && 'justify-between')">
     <label
-      class="flex h-10 w-full items-center gap-2.5 rounded-lg border border-input bg-card px-3.5 transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 sm:w-[260px]"
+      class="flex h-8 w-full items-center gap-2 rounded-lg border border-input bg-card px-3 transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 sm:w-[220px]"
     >
-      <SearchIcon class="size-[17px] shrink-0 text-foreground" aria-hidden="true" />
+      <SearchIcon class="size-4 shrink-0 text-foreground" aria-hidden="true" />
       <span class="sr-only">İçerik ara</span>
       <input
         v-model="search"
@@ -63,45 +69,51 @@ function clearSearch() {
       </button>
     </label>
 
-    <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap">
-      <FilterSelect
-        :model-value="query.clientId ? String(query.clientId) : undefined"
-        :options="clientOptions"
-        all-label="Tüm Markalar"
-        label="Marka"
-        class="sm:max-w-56"
-        @update:model-value="(v) => emit('update', { clientId: v ? Number(v) : undefined })"
-      />
-      <FilterSelect
-        :model-value="query.type"
-        :options="TYPE_OPTIONS"
-        all-label="Tüm Türler"
-        label="Tür"
-        @update:model-value="(v) => emit('update', { type: v as ContentType | undefined })"
-      />
-      <FilterSelect
-        :model-value="query.due === 'all' ? undefined : query.due"
-        :options="DUE_OPTIONS"
-        all-label="Teslim: Tümü"
-        prefix="Teslim: "
-        label="Teslim"
-        :tone="query.due === 'overdue' ? 'overdue' : 'coral'"
-        class="col-span-2 sm:col-span-1"
-        @update:model-value="(v) => emit('update', { due: (v as DueFilter | undefined) ?? 'all' })"
-      />
+    <!-- Filters, "Filtreleri temizle" and "N sonuç" move as one group, so they wrap together. -->
+    <div class="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+      <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap">
+        <FilterSelect
+          :model-value="query.clientId ? String(query.clientId) : undefined"
+          :options="clientOptions"
+          all-label="Tüm Markalar"
+          label="Marka"
+          size="sm"
+          class="sm:max-w-56"
+          @update:model-value="(v) => emit('update', { clientId: v ? Number(v) : undefined })"
+        />
+        <FilterSelect
+          :model-value="query.type"
+          :options="TYPE_OPTIONS"
+          all-label="Tüm Türler"
+          label="Tür"
+          size="sm"
+          @update:model-value="(v) => emit('update', { type: v as ContentType | undefined })"
+        />
+        <FilterSelect
+          :model-value="query.due === 'all' ? undefined : query.due"
+          :options="DUE_OPTIONS"
+          all-label="Teslim: Tümü"
+          prefix="Teslim: "
+          label="Teslim"
+          size="sm"
+          :tone="query.due === 'overdue' ? 'overdue' : 'coral'"
+          class="col-span-2 sm:col-span-1"
+          @update:model-value="(v) => emit('update', { due: (v as DueFilter | undefined) ?? 'all' })"
+        />
+      </div>
+
+      <button
+        v-if="hasFilters"
+        type="button"
+        class="rounded-md px-1 text-sm font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50"
+        @click="emit('clear')"
+      >
+        Filtreleri temizle
+      </button>
+
+      <span v-if="hasFilters && resultCount !== undefined" class="ml-auto text-sm text-muted-foreground tabular-nums" aria-live="polite">
+        {{ resultCount }} sonuç
+      </span>
     </div>
-
-    <button
-      v-if="hasFilters"
-      type="button"
-      class="rounded-md px-1 text-sm font-semibold text-coral-text outline-none hover:underline hover:underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50"
-      @click="emit('clear')"
-    >
-      Filtreleri temizle
-    </button>
-
-    <span v-if="hasFilters && resultCount !== undefined" class="ml-auto text-[13px] text-muted-foreground tabular-nums" aria-live="polite">
-      {{ resultCount }} sonuç
-    </span>
   </div>
 </template>

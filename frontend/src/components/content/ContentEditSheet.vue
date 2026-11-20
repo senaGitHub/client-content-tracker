@@ -163,6 +163,12 @@ function discardAndClose() {
   state.editOpen = false
 }
 
+/** Focus "Düzenlemeye dön" (the safe choice) instead of the first button, which discards. */
+function focusKeepEditing(event: Event) {
+  event.preventDefault()
+  document.getElementById('confirm-keep-editing')?.focus()
+}
+
 const meta = computed(() => {
   const current = item.value
   if (!current) return ''
@@ -376,7 +382,13 @@ const optional = 'font-normal text-muted-foreground'
 
   <!-- Asked before unsaved edits are thrown away. Esc / outside click here means "keep editing". -->
   <Dialog v-model:open="confirmOpen">
-    <DialogContent role="alertdialog" :show-close-button="false" class="gap-0 p-0 sm:max-w-[420px]">
+    <!-- overflow-hidden: the tinted footer is clipped to the dialog's rounded corners. -->
+    <DialogContent
+      role="alertdialog"
+      :show-close-button="false"
+      class="gap-0 overflow-hidden p-0 sm:max-w-[420px]"
+      @open-auto-focus="focusKeepEditing"
+    >
       <div class="px-6 pt-6 pb-5">
         <DialogTitle class="text-lg font-extrabold">Kaydedilmemiş değişiklikler silinsin mi?</DialogTitle>
         <DialogDescription class="mt-1.5 text-sm text-muted-foreground">
@@ -384,8 +396,11 @@ const optional = 'font-normal text-muted-foreground'
         </DialogDescription>
       </div>
       <div class="flex flex-col-reverse gap-2.5 border-t border-divider bg-background px-6 py-4 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" @click="confirmOpen = false">Düzenlemeye dön</Button>
-        <Button type="button" @click="discardAndClose">Değişiklikleri sil</Button>
+        <!-- The safe choice is primary and focused; discarding is secondary, in accent text (never red). -->
+        <Button type="button" variant="outline" class="text-coral-text hover:text-coral-text" @click="discardAndClose">
+          Değişiklikleri sil
+        </Button>
+        <Button id="confirm-keep-editing" type="button" @click="confirmOpen = false">Düzenlemeye dön</Button>
       </div>
     </DialogContent>
   </Dialog>

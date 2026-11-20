@@ -51,7 +51,9 @@ function clearSearch() {
 
 const description = computed(() => {
   const total = navCounts.value?.brands
-  return total === undefined ? 'Müşteri markalarınız ve içerik durumları.' : `${total} müşteri markanız ve içerik durumları.`
+  return total === undefined
+    ? 'Markalarınızın içerik durumuna bir bakışta göz atın.'
+    : `${total} markanızın içerik durumuna bir bakışta göz atın.`
 })
 
 const showSkeleton = computed(() => loading.value && !data.value)

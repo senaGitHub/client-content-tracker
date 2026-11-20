@@ -5,6 +5,7 @@ import { contentsApi } from '@/api'
 import type { ContentStatus, StatusCounts } from '@/api'
 import ContentBoard from '@/components/content/board/ContentBoard.vue'
 import ContentToolbar from '@/components/content/ContentToolbar.vue'
+import StatusTabs from '@/components/content/StatusTabs.vue'
 import ContentList from '@/components/content/list/ContentList.vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import { Button } from '@/components/ui/button'
@@ -56,7 +57,7 @@ const resultCount = computed(() => {
 </script>
 
 <template>
-  <PageHeader title="İçerikler" description="Tüm markaların içerikleri, taslaktan yayına." class="mb-5">
+  <PageHeader title="İçerikler" description="Tüm markalarınızın içeriklerini tek yerden yönetin." class="mb-5">
     <template #actions>
       <div role="group" aria-label="Görünüm" class="flex rounded-lg bg-muted p-1">
         <button
@@ -83,42 +84,40 @@ const resultCount = computed(() => {
   </PageHeader>
 
   <div class="flex flex-col gap-5">
-    <ContentToolbar
-      :query="state"
-      :has-filters="hasFilters"
-      :result-count="resultCount"
-      @update="(patch) => update(patch)"
-      @clear="clearFilters"
-    />
-
-    <template v-if="state.view === 'list'">
-      <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 -my-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
-        <button
-          v-for="tab in tabs"
-          :key="tab.label"
-          type="button"
-          :aria-pressed="state.status === tab.value"
-          :class="cn(
-            'shrink-0 rounded-lg px-4 py-[9px] text-[15px] whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-            state.status === tab.value ? 'bg-coral-soft font-semibold text-coral-text' : 'font-medium text-secondary-text hover:bg-muted',
-          )"
-          @click="update({ status: tab.value })"
-        >
-          {{ tab.label }}<span v-if="tab.count !== undefined" class="tabular-nums"> ({{ tab.count }})</span>
-        </button>
-      </div>
-
-      <ContentList
-        :filters="filters"
-        :status="state.status"
-        :page="state.page"
-        :sort="state.sort"
-        :has-filters="hasFilters"
-        @update="(patch, options) => update(patch, options)"
-        @clear="clearFilters"
-        @changed="counts.reload()"
+    <!--
+      One row, as in the Overview feed: status tabs on the left, search and filters on the right.
+      justify-between keeps a lone item at the start, so the filters sit left when they wrap under
+      the tabs (narrow screens, where they take the full width) and on the board, which has no tabs.
+    -->
+    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+      <StatusTabs
+        v-if="state.view === 'list'"
+        :tabs="tabs"
+        :model-value="state.status"
+        @update:model-value="(value) => update({ status: value })"
       />
-    </template>
+      <ContentToolbar
+        :query="state"
+        :has-filters="hasFilters"
+        :result-count="resultCount"
+        :spread="state.view === 'board'"
+        :class="state.view === 'board' ? 'w-full' : 'w-full lg:w-auto'"
+        @update="(patch) => update(patch)"
+        @clear="clearFilters"
+      />
+    </div>
+
+    <ContentList
+      v-if="state.view === 'list'"
+      :filters="filters"
+      :status="state.status"
+      :page="state.page"
+      :sort="state.sort"
+      :has-filters="hasFilters"
+      @update="(patch, options) => update(patch, options)"
+      @clear="clearFilters"
+      @changed="counts.reload()"
+    />
 
     <ContentBoard v-else :filters="filters" :has-filters="hasFilters" @clear="clearFilters" @changed="counts.reload()" />
   </div>

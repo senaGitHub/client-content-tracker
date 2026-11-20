@@ -13,17 +13,22 @@ const props = withDefaults(
     /** Undefined = no filter. */
     modelValue?: string
     options: { value: string; label: string }[]
-    /** Shown when no filter is set, and as the first option. */
+    /** Shown when no filter is set, and as the first option (unless allOption is false). */
     allLabel: string
+    /**
+     * false: allLabel is only a placeholder, not an option in the list (e.g. "Bekleme Süresi", whose
+     * unset state is the default order). The × still clears it.
+     */
+    allOption?: boolean
     /** Prepended to the selected label, e.g. "Teslim: ". */
     prefix?: string
     label: string
     /** 'overdue' tints the active state red (only for the overdue filter). */
     tone?: 'coral' | 'overdue'
-    /** 'sm' is a compact 32px / 13px variant (the Overview feed); 'md' is the toolbar size. */
+    /** 'sm' is a compact 32px / 14px variant (the Overview feed, the Content toolbar, Onay Süreci); 'md' (40px) is the default. */
     size?: 'md' | 'sm'
   }>(),
-  { prefix: '', tone: 'coral', size: 'md' },
+  { prefix: '', tone: 'coral', size: 'md', allOption: true },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: string | undefined] }>()
 
@@ -56,18 +61,14 @@ const display = computed(() => {
         :size="size === 'sm' ? 'sm' : 'default'"
         :class="cn(
           'h-full min-w-0 flex-1 border-0 bg-transparent font-medium text-inherit shadow-none focus-visible:ring-0',
-          size === 'sm' ? 'px-3 text-[13px]' : 'px-3.5 text-sm',
+          'text-sm', size === 'sm' ? 'px-3' : 'px-3.5',
           active && 'pr-1 [&>svg:last-child]:hidden',
         )"
       >
         <SelectValue>{{ display }}</SelectValue>
       </SelectTrigger>
-      <!--
-        Opens below the field instead of over it (popper). The 4px gap comes from the shared
-        SelectContent's popper offset (translate-y-1); the list is at least as wide as the field.
-      -->
-      <SelectContent position="popper" side="bottom" align="start" class="min-w-(--reka-select-trigger-width)">
-        <SelectItem :value="ALL">{{ allLabel }}</SelectItem>
+      <SelectContent>
+        <SelectItem v-if="allOption" :value="ALL">{{ allLabel }}</SelectItem>
         <SelectItem v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
       </SelectContent>
     </Select>

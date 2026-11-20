@@ -19,7 +19,7 @@ import { useClientOptions } from '@/composables/useClientOptions'
 import { useContentDialog } from '@/composables/useContentDialog'
 import { cn } from '@/lib/utils'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 // ---- URL state (?clientId=&sort=&page=), so the view survives a reload and the Back button ---
 

@@ -20,7 +20,7 @@ import { dueHint, formatDate, formatDateTime, formatShortDate, formatUpdated } f
 import { cn } from '@/lib/utils'
 import SortableHead from './SortableHead.vue'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 /**
  * Default order: what needs attention first (unpublished by due date, so overdue leads; then
  * published, newest first). It is not a column, so no header shows an active arrow for it.

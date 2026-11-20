@@ -47,7 +47,7 @@ Business rules:
 - Demo data:
   - A seeder runs on startup only if the DB is empty.
   - Dates are relative to today, so overdue items and this week always look realistic.
-  - There are 6 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health), each with a cover, and 36 contents (about 14 Taslak / 10 Onayda / 12 Yayında; 3 of them overdue on the seed day).
+  - There are 6 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health), each with a cover, and 72 contents, 12 per brand (28 Taslak / 16 Onayda / 28 Yayında; 3 of them overdue on the seed day). The in-review items have different waiting times (about 3 to 9 days on the seed day), each with its activity history.
   - Titles, notes and industries are in Turkish; brand names are not.
   - Never use real brand names or logos.
 
@@ -75,7 +75,7 @@ Tests: focused unit tests only, with no Spring context and no DB: the status tra
 ## Frontend
 Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with a List | Board toggle (List is the default; the last choice on the device is remembered), Approvals (/approvals).
 Dialogs: New/Edit client (one dialog, two modes), New/Edit content. Status can also be changed from the ⋯ menu (list rows, board cards) and by drag & drop (board). On a rejected move (409) the card snaps back and a toast explains why.
-Pagination: List view is paginated; Board loads the first 20 per column with a "Load more" button (Phase 7).
+Pagination: the content list, the brand detail table and Onay Süreci show 10 per page (`PAGE_SIZE`), so the demo data always has a second page; Board loads the first 20 per column with a "Load more" button. The API default stays 20.
 UX must-haves: skeleton loading, empty states, toasts (with Undo for status changes), dark mode toggle (persisted), responsive down to mobile, keyboard-friendly dialogs.
 No login, no charts, no fake metrics.
 

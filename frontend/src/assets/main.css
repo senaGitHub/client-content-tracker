@@ -341,3 +341,22 @@
 [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button]:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--coral) 60%, transparent);
 }
+
+/*
+ * "Just created" highlight (composables/useHighlight.ts): about 2s of coral-soft background plus a
+ * coral ring, then back to the element's own colours. The 100% keyframe is left out on purpose, so
+ * the animation ends on whatever background the row or card normally has. The ring is an outline,
+ * so it also shows on photo cards, where the background is covered.
+ */
+@keyframes highlight-flash {
+  0%,
+  70% {
+    background-color: var(--coral-soft);
+    outline-color: var(--coral);
+  }
+}
+.highlight-flash {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  animation: highlight-flash 2s ease-out;
+}

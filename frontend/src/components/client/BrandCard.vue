@@ -2,6 +2,7 @@
 import { MailIcon } from '@lucide/vue'
 import type { ClientResponse } from '@/api'
 import BrandCover from '@/components/client/BrandCover.vue'
+import { vHighlight } from '@/composables/useHighlight'
 import { clientLink } from '@/lib/content'
 import { cn } from '@/lib/utils'
 
@@ -13,7 +14,7 @@ defineProps<{ client: ClientResponse }>()
     The whole card opens the brand, but the mail button is a separate link: a link inside a link is
     invalid HTML, so the brand link is an overlay over the whole card and the mail link sits above it.
   -->
-  <article class="group relative flex flex-col overflow-hidden rounded-card border bg-card shadow-card transition-shadow hover:shadow-pop">
+  <article v-highlight:client="client.id" class="group relative flex flex-col overflow-hidden rounded-card border bg-card shadow-card transition-shadow hover:shadow-pop">
     <RouterLink
       :to="clientLink(client.id)"
       class="absolute inset-0 z-[1] rounded-card outline-none focus-visible:ring-3 focus-visible:ring-ring/60 focus-visible:ring-inset"

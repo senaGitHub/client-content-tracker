@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { ClientResponse } from '@/api'
 import { Skeleton } from '@/components/ui/skeleton'
+import { vHighlight } from '@/composables/useHighlight'
 import { clientLink } from '@/lib/content'
 
 const props = defineProps<{ clients?: ClientResponse[] }>()
@@ -39,6 +40,7 @@ const featured = computed(() =>
         v-for="client in featured"
         v-else
         :key="client.id"
+        v-highlight:client="client.id"
         :to="clientLink(client.id)"
         class="group relative block h-[120px] overflow-hidden rounded-2xl bg-muted text-white outline-none focus-visible:ring-3 focus-visible:ring-ring/60"
       >

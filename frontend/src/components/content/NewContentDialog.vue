@@ -14,10 +14,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { useClientOptions } from '@/composables/useClientOptions'
 import { notifyContentSaved, useContentDialog } from '@/composables/useContentDialog'
 import { useContentForm } from '@/composables/useContentForm'
+import { highlight } from '@/composables/useHighlight'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { errorMessage } from '@/lib/errors'
 
-const { state } = useContentDialog()
+const { state, openEdit } = useContentDialog()
 const { clients } = useClientOptions()
 const { form, errors, reset, validate, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
   useContentForm('new-content')
@@ -32,7 +33,12 @@ async function submit() {
   saving.value = true
   try {
     const saved = await contentsApi.create(body())
-    toast.success('İçerik taslak olarak oluşturuldu', { description: saved.title })
+    toast.success('İçerik taslak olarak oluşturuldu', {
+      description: saved.title,
+      action: { label: 'Görüntüle', onClick: () => openEdit(saved) },
+    })
+    // Before notifying, so the page's reloaded list finds the request when it renders the new row.
+    highlight('content', saved.id)
     notifyContentSaved(saved)
     void refreshNavCounts()
     state.newOpen = false

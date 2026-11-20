@@ -16,6 +16,7 @@ import { useContentDialog } from '@/composables/useContentDialog'
 import type { DueFilter } from '@/composables/useContentQuery'
 import { useStatusChange } from '@/composables/useStatusChange'
 import type { PlacePhase } from '@/composables/useStatusChange'
+import { vHighlight } from '@/composables/useHighlight'
 import { DUE_OPTIONS, STATUS_ORDER, STATUS_LABELS, TYPE_LABELS, TYPE_ORDER } from '@/lib/content'
 import { dueHint, formatShortDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -255,6 +256,7 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
             <tr
               v-for="item in items"
               :key="item.id"
+              v-highlight:content="item.id"
               class="cursor-pointer border-t border-divider transition-colors hover:bg-coral-soft/40"
               @click="openEdit(item)"
             >
@@ -299,7 +301,7 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
             </div>
           </li>
         </template>
-        <li v-for="item in items" v-else :key="item.id" class="flex items-center gap-3 p-3">
+        <li v-for="item in items" v-else :key="item.id" v-highlight:content="item.id" class="flex items-center gap-3 p-3">
           <!-- Same as the table: the type icon leads the row, where the thumbnail used to be. -->
           <ContentTypeIcon :type="item.type" class="mt-0.5 self-start" />
           <div class="min-w-0 flex-1">

@@ -3,6 +3,7 @@ import type { ContentResponse, ContentStatus } from '@/api'
 import ContentActionsMenu from '@/components/content/ContentActionsMenu.vue'
 import ContentTypeIcon from '@/components/content/ContentTypeIcon.vue'
 import OverdueChip from '@/components/content/OverdueChip.vue'
+import { vHighlight } from '@/composables/useHighlight'
 import { dueLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +13,7 @@ const emit = defineEmits<{ open: []; move: [status: ContentStatus] }>()
 
 <template>
   <article
+    v-highlight:content="props.item.id"
     :data-id="props.item.id"
     :aria-busy="pending"
     :class="cn(

@@ -22,6 +22,7 @@ import { useContentDialog } from '@/composables/useContentDialog'
 import type { ContentQuery } from '@/composables/useContentQuery'
 import { asPublishing, useStatusChange } from '@/composables/useStatusChange'
 import type { PlacePhase } from '@/composables/useStatusChange'
+import { vHighlight } from '@/composables/useHighlight'
 import { dueHint, formatDate, formatDateTime, formatShortDate, formatUpdated } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import SortableHead from './SortableHead.vue'
@@ -196,6 +197,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
           <tr
             v-for="item in data?.items"
             :key="item.id"
+            v-highlight:content="item.id"
             class="cursor-pointer border-t border-divider transition-colors hover:bg-coral-soft/40"
             @click="openEdit(item)"
           >
@@ -254,7 +256,7 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
           <Skeleton class="size-8 rounded-lg" />
         </li>
       </template>
-      <li v-for="item in data?.items" v-else :key="item.id" class="flex items-center gap-2 py-3">
+      <li v-for="item in data?.items" v-else :key="item.id" v-highlight:content="item.id" class="flex items-center gap-2 py-3">
         <div class="min-w-0 flex-1">
           <button
             type="button"

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { notifyClientSaved, useClientDialog } from '@/composables/useClientDialog'
 import { useClientOptions } from '@/composables/useClientOptions'
+import { highlight } from '@/composables/useHighlight'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { clientLink } from '@/lib/content'
 import { COVER_IMAGES } from '@/lib/covers'
@@ -83,8 +84,10 @@ async function submit() {
     const saved = await clientsApi.create(body())
     toast.success('Marka eklendi', {
       description: saved.name,
-      action: { label: 'Markayı aç', onClick: () => void router.push(clientLink(saved.id)) },
+      action: { label: 'Görüntüle', onClick: () => void router.push(clientLink(saved.id)) },
     })
+    // Before notifying, so the page's reloaded grid finds the request when it renders the new card.
+    highlight('client', saved.id)
     notifyClientSaved(saved)
     void refreshNavCounts()
     void reloadClientOptions()

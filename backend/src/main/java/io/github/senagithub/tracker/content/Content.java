@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "content")
@@ -88,15 +89,26 @@ public class Content {
         updatedAt = Instant.now();
     }
 
-    /** Edits everything except the status, which only changes through {@link #changeStatus}. */
-    public void update(Client client, String title, ContentType type, String channel,
-                       LocalDate dueDate, String notes) {
+    /**
+     * Edits everything except the status, which only changes through {@link #changeStatus}.
+     *
+     * @return whether any field actually changed (the client is compared by id)
+     */
+    public boolean update(Client client, String title, ContentType type, String channel,
+                          LocalDate dueDate, String notes) {
+        boolean changed = !Objects.equals(this.client.getId(), client.getId())
+                || !Objects.equals(this.title, title)
+                || this.type != type
+                || !Objects.equals(this.channel, channel)
+                || !Objects.equals(this.dueDate, dueDate)
+                || !Objects.equals(this.notes, notes);
         this.client = client;
         this.title = title;
         this.type = type;
         this.channel = channel;
         this.dueDate = dueDate;
         this.notes = notes;
+        return changed;
     }
 
     /** Callers must check {@link ContentStatus#canTransitionTo} first; the service does. */

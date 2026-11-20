@@ -109,16 +109,19 @@ public class ContentService {
         Content content = findContent(id);
         // Compared with the saved date before it is replaced: an unchanged past date is fine.
         DueDateRule.check(request.dueDate(), content.getDueDate(), LocalDate.now());
-        content.update(
+        boolean changed = content.update(
                 findClientForRequest(request.clientId()),
                 request.title().trim(),
                 request.type(),
                 blankToNull(request.channel()),
                 request.dueDate(),
                 blankToNull(request.notes()));
-        // Flush now so @PreUpdate sets updatedAt before we build the response.
-        contentRepository.saveAndFlush(content);
-        activityService.record(content, ActivityAction.UPDATED, null, null);
+        // Saving the form unchanged is a no-op: no UPDATED entry in the history, updatedAt stays.
+        if (changed) {
+            // Flush now so @PreUpdate sets updatedAt before we build the response.
+            contentRepository.saveAndFlush(content);
+            activityService.record(content, ActivityAction.UPDATED, null, null);
+        }
         return ContentResponse.from(content, LocalDate.now());
     }
 

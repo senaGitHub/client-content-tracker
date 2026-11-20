@@ -70,7 +70,7 @@ Errors: @RestControllerAdvice returning ProblemDetail (RFC 7807). Validation err
 
 ## Backend structure
 Package by feature: `client`, `content`, `approval`, `dashboard`, `activity`, `common` (errors, config). Controller → Service → Repository. Entities never leave the service layer; controllers use record DTOs. Schema via Flyway migrations.
-Tests: focused unit tests only, with no Spring context and no DB: the status transition rule (`ContentStatusTest`), the due date rule (`DueDateRuleTest`, fixed "today") and request validation (`ClientRequestValidationTest`, `ContentRequestValidationTest`, plain Bean Validation).
+Tests: focused unit tests only, with no Spring context and no DB: the status transition rule (`ContentStatusTest`), the due date rule (`DueDateRuleTest`, fixed "today"), `Content.update` change detection (`ContentTest`, so an unchanged edit writes no UPDATED entry) and request validation (`ClientRequestValidationTest`, `ContentRequestValidationTest`, plain Bean Validation).
 
 ## Frontend
 Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with a List | Board toggle (List is the default; the last choice on the device is remembered), Approvals (/approvals).

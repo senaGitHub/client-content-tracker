@@ -54,7 +54,7 @@ The UI is in Turkish on purpose: the target users are Turkish account managers. 
 - **Undo for publishing, without breaking the rule.** Published content cannot go back on the server (see trade-offs). So every move to Yayında, wherever it starts, is held in the browser for about 5 seconds, and **Geri al** cancels it before anything is sent. Other moves are sent at once, and their Undo sends the reverse move. In the approvals queues (the Overview panel and the Onay Süreci page), Revizyon is held the same way, with Undo in the toast, so both buttons there behave alike.
 - **Priority sort** (`sort=priority`): unpublished content first, oldest due date first, so overdue items lead the Overview feed.
 - **Edit sheet.** Clicking content opens a side sheet instead of a new page, so you keep your place in the board or list. Status buttons in the sheet apply at once and are separate from "Save changes". The `PUT` body has no status, so saving the form can never overwrite a status change.
-- **Realistic demo data.** A seeder fills an empty database with 6 brands and 72 content items (12 per brand). Dates are relative to the day the database was seeded, so the data looks realistic right after a seed and ages after that; I reset the demo database by hand now and then to keep it fresh.
+- **Realistic demo data.** A seeder fills an empty database with 8 brands and 96 content items (12 per brand; one brand has no cover, to show the initials fallback). Dates are relative to the day the database was seeded, so the data looks realistic right after a seed and ages after that; I reset the demo database by hand now and then to keep it fresh.
 
 ---
 

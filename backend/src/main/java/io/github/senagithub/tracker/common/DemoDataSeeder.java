@@ -155,7 +155,40 @@ public class DemoDataSeeder implements ApplicationRunner {
                     new ContentSeed("Hasta hikâyesi: yurt dışından gelen bir aile", SOCIAL_POST, "YouTube", DRAFT, 11,
                             "Ailenin yazılı izni alındı."),
                     new ContentSeed("Sigorta ve ödeme hakkında sık sorulanlar", WEB_PAGE, WEB, DRAFT, 8, null),
-                    new ContentSeed("Doktorlarımızla canlı soru-cevap", SOCIAL_POST, "Instagram", DRAFT, 3, null)))
+                    new ContentSeed("Doktorlarımızla canlı soru-cevap", SOCIAL_POST, "Instagram", DRAFT, 3, null))),
+            new ClientSeed("Fig & Thyme Bodrum", "Restoran", "Selin Öztürk", "selin.ozturk@figthyme.example",
+                    CoverImages.OLIVE_TABLE, List.of(
+                    new ContentSeed("Sonbahar tadım menüsü lansmanı", SOCIAL_POST, "Instagram", PUBLISHED, -8, null),
+                    new ContentSeed("Ege otlarıyla beş tarif", BLOG_POST, "Blog", PUBLISHED, -14, null),
+                    new ContentSeed("Rezervasyon ve özel etkinlik sayfası", WEB_PAGE, WEB, PUBLISHED, -19, null),
+                    new ContentSeed("Şefle sabah pazarı", SOCIAL_POST, "YouTube", PUBLISHED, -3, null),
+                    new ContentSeed("Zeytinyağı hasadı günlüğü", BLOG_POST, WEB, PUBLISHED, -6,
+                            "Üretici çiftliğin adı metinden çıkarıldı."),
+                    new ContentSeed("Yılbaşı akşam yemeği menüsü", SOCIAL_POST, "Instagram", IN_REVIEW, 4,
+                            "Şarap eşleştirmesi sommelier onayında."),
+                    new ContentSeed("Menü ve alerjen bilgisi sayfası", WEB_PAGE, WEB, IN_REVIEW, 7, null),
+                    new ContentSeed("Mevsim sebzeleri: kasım listesi", SOCIAL_POST, "Facebook", DRAFT, -1,
+                            "Fotoğraf çekimi hava yüzünden ertelendi."),
+                    new ContentSeed("Mutfak ekibimizle tanışın", SOCIAL_POST, "Instagram", DRAFT, 5, null),
+                    new ContentSeed("Kış akşamları için Ege tatlıları", BLOG_POST, WEB, DRAFT, 10, null),
+                    new ContentSeed("Hediye kartı sayfası", WEB_PAGE, WEB, DRAFT, 14, null),
+                    new ContentSeed("Pazar brunch'ı duyurusu", SOCIAL_POST, "Facebook", DRAFT, 2, null))),
+            // No cover on purpose: the demo shows the initials fallback (brand card, hero, brand strip).
+            new ClientSeed("Tuff Sky Balloons", "Balon turu", "Burak Şahin", "burak.sahin@tuffsky.example",
+                    null, List.of(
+                    new ContentSeed("Gün doğumu uçuşundan ilk izlenimler", SOCIAL_POST, "Instagram", PUBLISHED, -4, null),
+                    new ContentSeed("Balon turu güvenliği: sık sorulanlar", WEB_PAGE, WEB, PUBLISHED, -21, null),
+                    new ContentSeed("Pilotumuzla gökyüzünde 20 yıl", SOCIAL_POST, "YouTube", PUBLISHED, -9, null),
+                    new ContentSeed("Balon uçuşunda ne giyilir?", BLOG_POST, "Blog", PUBLISHED, -12, null),
+                    new ContentSeed("Kış uçuşları fiyat duyurusu", SOCIAL_POST, "Facebook", IN_REVIEW, 3,
+                            "Rüzgâr nedeniyle iptal koşulları eklenecek."),
+                    new ContentSeed("Özel uçuş ve evlilik teklifi paketi sayfası", WEB_PAGE, WEB, IN_REVIEW, 8, null),
+                    new ContentSeed("Fotoğrafçılar için en iyi uçuş saatleri", BLOG_POST, WEB, IN_REVIEW, 6, null),
+                    new ContentSeed("Yolcu yorumlarından seçmeler", SOCIAL_POST, "Instagram", DRAFT, 1, null),
+                    new ContentSeed("Göreme otellerinden transfer sayfası", WEB_PAGE, WEB, DRAFT, 11, null),
+                    new ContentSeed("Kamera arkası: balon nasıl şişirilir", SOCIAL_POST, "TikTok", DRAFT, 4, null),
+                    new ContentSeed("Uçuş sertifikası tasarımı duyurusu", SOCIAL_POST, "Instagram", DRAFT, 9, null),
+                    new ContentSeed("Kapadokya'da yıldız gözlemi rehberi", BLOG_POST, WEB, DRAFT, 17, null)))
     );
 
     private final ClientRepository clientRepository;

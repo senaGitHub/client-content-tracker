@@ -47,7 +47,7 @@ Business rules:
 - Demo data:
   - A seeder runs on startup only if the DB is empty.
   - Dates are relative to today, so overdue items and this week always look realistic.
-  - There are 6 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health), each with a cover, and 72 contents, 12 per brand (28 Taslak / 16 Onayda / 28 Yayında; 3 of them overdue on the seed day). The in-review items have different waiting times (about 3 to 9 days on the seed day), each with its activity history.
+  - There are 8 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health, Fig & Thyme Bodrum, Tuff Sky Balloons). Seven use the seven bundled covers; Tuff Sky Balloons has none on purpose, so the demo shows the initials fallback. 96 contents, 12 per brand (38 Taslak / 21 Onayda / 37 Yayında; 4 of them overdue on the seed day). The in-review items have different waiting times (a few days up to about 9 on the seed day), each with its activity history.
   - Titles, notes and industries are in Turkish; brand names are not.
   - Never use real brand names or logos.
 

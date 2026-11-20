@@ -187,6 +187,14 @@ function onDrop(status: ContentStatus, event: DraggableEvent<ContentResponse>) {
 // From md up the columns keep a 280px minimum and the board scrolls sideways when they don't fit
 // (tablets, small laptops next to the sidebar), so drag & drop stays available.
 const isDesktop = useMediaQuery('(min-width: 768px)')
+
+/**
+ * Where a press must not start a drag (SortableJS `filter`): a pending card, and the interactive
+ * controls inside a card (the ⋯ menu trigger, links, menu items). The title button is the exception:
+ * it stretches over the whole card (data-card-open), so the card itself stays draggable.
+ * `prevent-on-filter` is off, so clicks, focus and the menu still work on those controls.
+ */
+const NO_DRAG = '.is-pending, a, button:not([data-card-open]), [role="menuitem"], [aria-haspopup]'
 const mobileColumn = ref<ContentStatus>('DRAFT')
 const visibleStatuses = computed(() => (isDesktop.value ? STATUS_ORDER : [mobileColumn.value]))
 
@@ -302,7 +310,7 @@ const EMPTY_COLUMN_TEXT: Record<ContentStatus, string> = {
             :scroll-sensitivity="80"
             :scroll-speed="14"
             :bubble-scroll="true"
-            filter=".is-pending"
+            :filter="NO_DRAG"
             :prevent-on-filter="false"
             ghost-class="board-ghost"
             fallback-class="board-drag"

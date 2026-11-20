@@ -31,7 +31,7 @@ import { formatDateTime, formatUpdated } from '@/lib/format'
 const { state } = useContentDialog()
 const { clients } = useClientOptions()
 const route = useRoute()
-const { form, errors, reset, isDirty, validate, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
+const { form, errors, reset, isDirty, validate, onBlur, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
   useContentForm('edit-content')
 
 const item = computed(() => state.content)
@@ -264,6 +264,7 @@ const optional = 'font-normal text-muted-foreground'
                 autocomplete="off"
                 :aria-invalid="!!errors.title"
                 :aria-describedby="describedBy('title')"
+                @blur="onBlur('title')"
               />
               <p v-if="errors.title" :id="`${id('title')}-error`" class="text-xs font-medium text-destructive">{{ errors.title }}</p>
             </div>

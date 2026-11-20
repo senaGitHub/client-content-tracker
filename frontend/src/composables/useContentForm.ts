@@ -1,7 +1,8 @@
-import { nextTick, reactive } from 'vue'
+import { nextTick, reactive, watch } from 'vue'
 import { ApiError } from '@/api'
 import type { ContentRequest, ContentResponse, ContentType } from '@/api'
-import { fieldErrors } from '@/lib/errors'
+import { fieldErrors, fieldLabel } from '@/lib/errors'
+import { checkText } from '@/lib/validation'
 
 export type ContentField = 'clientId' | 'title' | 'type' | 'channel' | 'dueDate' | 'notes'
 
@@ -55,14 +56,34 @@ export function useContentForm(idPrefix: string) {
     return JSON.stringify(form) !== initial
   }
 
+  /** The text rules from lib/validation.ts (title must contain a letter); undefined when fine or empty. */
+  function ruleError(field: ContentField): string | undefined {
+    return field === 'title' ? checkText(field, fieldLabel(field), form.title) : undefined
+  }
+
   function validate(): boolean {
     clearErrors()
     if (!form.title.trim()) errors.title = 'Başlık gerekli.'
+    else if (ruleError('title')) errors.title = ruleError('title')
     if (!form.clientId) errors.clientId = 'Bir marka seçin.'
     if (!form.type) errors.type = 'Bir tür seçin.'
     if (!form.dueDate) errors.dueDate = 'Teslim tarihi gerekli.'
     return Object.keys(errors).length === 0
   }
+
+  /**
+   * Blur re-checks one field's rules when it has a value. An empty field is left alone until
+   * submit, so tabbing through the form doesn't turn every field red.
+   */
+  function onBlur(field: ContentField) {
+    const message = ruleError(field)
+    if (message) errors[field] = message
+    else delete errors[field]
+  }
+
+  // Changing a field clears only that field's error (and with it aria-invalid); blur or submit
+  // checks it again. Other fields keep theirs.
+  FIELDS.forEach((field) => watch(() => form[field], () => delete errors[field]))
 
   function id(field: ContentField) {
     return `${idPrefix}-${field}`
@@ -113,5 +134,5 @@ export function useContentForm(idPrefix: string) {
     }
   }
 
-  return { form, errors, reset, isDirty, validate, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown }
+  return { form, errors, reset, isDirty, validate, onBlur, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown }
 }

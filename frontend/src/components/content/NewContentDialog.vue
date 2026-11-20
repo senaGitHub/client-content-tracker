@@ -20,7 +20,7 @@ import { errorMessage } from '@/lib/errors'
 
 const { state, openEdit } = useContentDialog()
 const { clients } = useClientOptions()
-const { form, errors, reset, validate, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
+const { form, errors, reset, validate, onBlur, focusFirstError, applyServerErrors, body, id, describedBy, onKeydown } =
   useContentForm('new-content')
 
 const saving = ref(false)
@@ -97,6 +97,7 @@ const optional = 'font-normal text-muted-foreground'
             placeholder="ör. Gün batımı terası reels"
             :aria-invalid="!!errors.title"
             :aria-describedby="describedBy('title')"
+            @blur="onBlur('title')"
           />
           <p v-if="errors.title" :id="`${id('title')}-error`" class="text-xs font-medium text-destructive">{{ errors.title }}</p>
         </div>

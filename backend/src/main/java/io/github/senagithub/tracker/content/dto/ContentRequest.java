@@ -3,6 +3,7 @@ package io.github.senagithub.tracker.content.dto;
 import io.github.senagithub.tracker.content.ContentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -14,6 +15,8 @@ public record ContentRequest(
 
         @NotBlank(message = "Title is required.")
         @Size(max = 200, message = "Title must be at most 200 characters.")
+        // \p{L} = any Unicode letter; mirrored in the frontend's src/lib/validation.ts.
+        @Pattern(regexp = "(?s).*\\p{L}.*", message = "Title must contain at least one letter.")
         String title,
 
         @NotNull(message = "Type is required.")

@@ -1,6 +1,7 @@
 import { ApiError } from '@/api'
 import type { ContentStatus } from '@/api'
 import { STATUS_LABELS } from '@/lib/content'
+import { messages, TEXT_RULES } from '@/lib/validation'
 
 /*
  * The API speaks English (ProblemDetail titles, details and field messages); the UI speaks Turkish.
@@ -32,16 +33,27 @@ const PICKER_FIELDS: Record<string, string> = {
   status: 'Bir durum seçin.',
 }
 
+/** The Turkish name of a form field, e.g. "Marka adı" (also used by the forms' own checks). */
+export function fieldLabel(field: string): string {
+  return FIELD_LABELS[field] ?? 'Bu alan'
+}
+
 /**
  * Translates one backend Bean Validation message by its shape, not word for word, so a new
  * field only needs a label above: "X is required.", "X must be at most N characters.",
- * "X must be a valid email address.".
+ * "X must be at least N characters.", "X must contain at least one letter.",
+ * "X may only contain letters, spaces and ...", "X must be a valid email address.".
+ * The text rules' messages come from lib/validation.ts, so they match the form's own checks.
  */
 function translateFieldMessage(field: string, message: string): string {
-  const label = FIELD_LABELS[field] ?? 'Bu alan'
+  const label = fieldLabel(field)
   if (/is required/i.test(message)) return PICKER_FIELDS[field] ?? `${label} zorunludur.`
   const max = message.match(/at most (\d+) characters/i)
   if (max) return `${label} en fazla ${max[1]} karakter olabilir.`
+  const min = message.match(/at least (\d+) characters/i)
+  if (min) return messages.minLength(label, Number(min[1]))
+  if (/at least one letter/i.test(message)) return messages.needsLetter(label)
+  if (/may only contain letters/i.test(message)) return messages.onlyLetters(label, TEXT_RULES[field]?.allowedChars)
   if (/valid email/i.test(message)) return 'Geçerli bir e-posta adresi girin.'
   return `${label} geçersiz.`
 }

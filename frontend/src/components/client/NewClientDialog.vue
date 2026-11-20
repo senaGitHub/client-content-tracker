@@ -16,8 +16,9 @@ import { highlight } from '@/composables/useHighlight'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { clientLink } from '@/lib/content'
 import { COVER_IMAGES } from '@/lib/covers'
-import { errorMessage, fieldErrors } from '@/lib/errors'
+import { errorMessage, fieldErrors, fieldLabel } from '@/lib/errors'
 import { cn } from '@/lib/utils'
+import { checkText } from '@/lib/validation'
 
 type Field = 'name' | 'industry' | 'contactName' | 'contactEmail' | 'coverImageUrl'
 // Order matters: the first invalid field in this order gets focus.
@@ -44,15 +45,46 @@ watch(() => state.open, (open) => {
   clearErrors()
 })
 
+/** The field's content rules (lib/validation.ts, plus the e-mail shape); undefined when fine or empty. */
+function ruleError(field: Field): string | undefined {
+  if (field === 'coverImageUrl') return undefined
+  if (field === 'contactEmail') {
+    const email = form.contactEmail.trim()
+    return email && !EMAIL.test(email) ? 'Geçerli bir e-posta adresi girin.' : undefined
+  }
+  return checkText(field, fieldLabel(field), form[field])
+}
+
+const REQUIRED: Partial<Record<Field, string>> = {
+  name: 'Marka adı gerekli.',
+  industry: 'Sektör gerekli.',
+  contactName: 'İlgili kişi gerekli.',
+  contactEmail: 'E-posta gerekli.',
+}
+
 function validate(): boolean {
   clearErrors()
-  if (!form.name.trim()) errors.name = 'Marka adı gerekli.'
-  if (!form.industry.trim()) errors.industry = 'Sektör gerekli.'
-  if (!form.contactName.trim()) errors.contactName = 'İlgili kişi gerekli.'
-  if (!form.contactEmail.trim()) errors.contactEmail = 'E-posta gerekli.'
-  else if (!EMAIL.test(form.contactEmail.trim())) errors.contactEmail = 'Geçerli bir e-posta adresi girin.'
+  for (const field of FIELDS) {
+    const required = REQUIRED[field]
+    const message = required && !form[field].trim() ? required : ruleError(field)
+    if (message) errors[field] = message
+  }
   return Object.keys(errors).length === 0
 }
+
+/**
+ * Blur re-checks one field's rules when it has a value. An empty field is left alone until
+ * submit, so tabbing through the form doesn't turn every field red.
+ */
+function onBlur(field: Field) {
+  const message = ruleError(field)
+  if (message) errors[field] = message
+  else delete errors[field]
+}
+
+// Changing a field clears only that field's error (and with it aria-invalid); blur or submit
+// checks it again. Other fields keep theirs.
+FIELDS.forEach((field) => watch(() => form[field], () => delete errors[field]))
 
 const id = (field: Field) => `new-client-${field}`
 const describedBy = (field: Field) => (errors[field] ? `${id(field)}-error` : undefined)
@@ -155,6 +187,7 @@ const TEXT_FIELDS: { field: Exclude<Field, 'coverImageUrl'>; label: string; plac
             :placeholder="f.placeholder"
             :aria-invalid="!!errors[f.field]"
             :aria-describedby="describedBy(f.field)"
+            @blur="onBlur(f.field)"
           />
           <p v-if="errors[f.field]" :id="`${id(f.field)}-error`" :class="errorClass">{{ errors[f.field] }}</p>
         </div>

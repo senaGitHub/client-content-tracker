@@ -76,7 +76,7 @@ const grow = computed(() => {
         <Button
           variant="approve"
           size="xs"
-          :class="cn(button, grow, target === 'DRAFT' && 'invisible', target && 'cursor-default')"
+          :class="cn(button, grow, target === 'DRAFT' && 'invisible')"
           :aria-label="`Onayla: ${item.title}`"
           :aria-disabled="!!target || undefined"
           :disabled="locked && !target"
@@ -94,7 +94,7 @@ const grow = computed(() => {
     <Button
       variant="outline"
       size="xs"
-      :class="cn(button, 'text-secondary-text', grow, target === 'PUBLISHED' && 'invisible', target && 'cursor-default')"
+      :class="cn(button, 'text-secondary-text', grow, target === 'PUBLISHED' && 'invisible')"
       :aria-label="`Revizyona gönder: ${item.title}`"
       :aria-disabled="!!target || undefined"
       :disabled="locked && !target"

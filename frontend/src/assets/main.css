@@ -292,6 +292,33 @@
     @apply border-border outline-ring/50;
   }
   /*
+   * One rule for the hand cursor on everything clickable (Tailwind v4's preflight leaves buttons
+   * on the default arrow), and not-allowed when it is disabled. It lives in the base layer, so a
+   * utility still wins where a component wants its own cursor: the board card's grab / grabbing,
+   * a pending card's progress, a clickable table row.
+   */
+  button,
+  a[href],
+  [role="button"],
+  [role="tab"],
+  [role="radio"],
+  [role="menuitem"],
+  [role="menuitemradio"],
+  [role="menuitemcheckbox"],
+  [role="option"],
+  [role="combobox"],
+  [role="switch"],
+  label[for],
+  summary,
+  select {
+    cursor: pointer;
+  }
+  :disabled,
+  [aria-disabled="true"],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
+  /*
    * Always reserve the scrollbar's space so the layout doesn't shift when a page grows tall
    * enough to scroll. The reserved strip shows the html background, so html gets the theme
    * background too (not only body); color-scheme keeps the scrollbar itself on theme.

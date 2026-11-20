@@ -53,7 +53,7 @@ const tabs = computed(() =>
 const description = computed(() =>
   state.value.view === 'board'
     ? 'Kartları sütunlar arasında sürükleyerek durumunu değiştirin.'
-    : 'Tüm markalarınızın içeriklerini tek yerden yönetin.',
+    : 'Markalarınızın içeriklerini tek yerden yönetin.',
 )
 
 </script>

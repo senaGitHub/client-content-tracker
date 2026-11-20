@@ -28,14 +28,7 @@ export const TYPE_LABELS: Record<ContentType, string> = {
   BLOG_POST: 'Blog Yazısı',
   WEB_PAGE: 'Web Sayfası',
 }
-
-/** Short names for the type picker in the content forms. */
-export const TYPE_SHORT_LABELS: Record<ContentType, string> = {
-  SOCIAL_POST: 'Sosyal',
-  BLOG_POST: 'Blog',
-  WEB_PAGE: 'Web',
-}
-
+
 export const TYPE_ORDER: ContentType[] = ['SOCIAL_POST', 'BLOG_POST', 'WEB_PAGE']
 
 /**

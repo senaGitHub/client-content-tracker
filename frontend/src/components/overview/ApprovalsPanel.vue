@@ -15,6 +15,8 @@ defineProps<{
   total: number
   /** Onayla / Revizyon / Geri al, shared with the Onay Süreci page. */
   actions: Actions
+  /** Items with a move in flight elsewhere on the page (the content feed): their buttons are locked. */
+  lockedIds?: number[]
 }>()
 
 const { openEdit } = useContentDialog()
@@ -109,7 +111,7 @@ function dueText(dueDate: string): string {
               </div>
             </div>
 
-            <ApprovalActions :item="item" :actions="actions" horizontal="when-narrow" />
+            <ApprovalActions :item="item" :actions="actions" horizontal="when-narrow" :locked="lockedIds?.includes(item.id)" />
           </li>
         </TransitionGroup>
       </TooltipProvider>

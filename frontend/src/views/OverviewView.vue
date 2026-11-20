@@ -59,8 +59,13 @@ onSaved(() => void refreshAll())
 const approvals = useApprovalActions(() => dashboard.data.value?.approvals, refreshAll)
 
 const totals = computed(() => dashboard.data.value?.totals)
-/** Ids of approvals waiting to be sent; the feed shows those rows as pending. */
-const approvingIds = computed(() => approvals.approvingItems.value.map((item) => item.id))
+/**
+ * One shared list of items with a move in flight on this page, from the approvals panel (any target)
+ * and the content feed's menus. Each side shows the other's items as pending or locked, so the same
+ * item never gets a second PATCH.
+ */
+const feedPendingIds = computed(() => feed.value?.ownPendingIds ?? [])
+const pendingIds = computed(() => [...new Set([...approvals.pendingIds.value, ...feedPendingIds.value])])
 
 const clientOptions = computed(() =>
   (dashboard.data.value?.clients ?? []).map(({ id, name, coverImageUrl }) => ({ id, name, coverImageUrl })),
@@ -104,7 +109,7 @@ const clientOptions = computed(() =>
         <ContentFeed
           ref="feed"
           :clients="clientOptions"
-          :approving-ids="approvingIds"
+          :pending-ids="pendingIds"
           :reload-summary="reloadSummary"
         />
       </div>
@@ -115,6 +120,7 @@ const clientOptions = computed(() =>
         :items="approvals.visible.value"
         :total="totals?.inReview ?? 0"
         :actions="approvals"
+        :locked-ids="feedPendingIds"
       />
     </div>
   </div>

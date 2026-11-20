@@ -22,6 +22,11 @@ const props = defineProps<{
    * Overview panel, whose buttons move under the title when it is narrow).
    */
   horizontal?: boolean | 'when-narrow'
+  /**
+   * A move for this item is in flight elsewhere on the page (the Overview feed's status menu): both
+   * buttons are disabled, so no second PATCH can be sent for it.
+   */
+  locked?: boolean
 }>()
 
 const root = ref<HTMLElement>()
@@ -36,10 +41,10 @@ const announcement = computed(() => {
 // The pressed button stays focusable (aria-disabled, not disabled) so keyboard focus is not lost;
 // a second press is ignored.
 function approve() {
-  if (!target.value) props.actions.approve(props.item)
+  if (!target.value && !props.locked) props.actions.approve(props.item)
 }
 function revise() {
-  if (!target.value) props.actions.revise(props.item)
+  if (!target.value && !props.locked) props.actions.revise(props.item)
 }
 
 // After "Geri al" in the toast, focus comes back to the row's first button.
@@ -74,6 +79,7 @@ const grow = computed(() => {
           :class="cn(button, grow, target === 'DRAFT' && 'invisible', target && 'cursor-default')"
           :aria-label="`Onayla: ${item.title}`"
           :aria-disabled="!!target || undefined"
+          :disabled="locked && !target"
           :inert="target === 'DRAFT'"
           data-approve
           @click="approve"
@@ -91,6 +97,7 @@ const grow = computed(() => {
       :class="cn(button, 'text-secondary-text', grow, target === 'PUBLISHED' && 'invisible', target && 'cursor-default')"
       :aria-label="`Revizyona gönder: ${item.title}`"
       :aria-disabled="!!target || undefined"
+      :disabled="locked && !target"
       :inert="target === 'PUBLISHED'"
       @click="revise"
     >

@@ -5,6 +5,7 @@ import type { ContentResponse, ContentStatus } from '@/api'
 import { DEFER_DELAY_MS, useDeferredMove } from '@/composables/useDeferredMove'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { STATUS_LABELS } from '@/lib/content'
+import { quoted } from '@/lib/format'
 import { statusChangeError } from '@/lib/errors'
 
 /**
@@ -17,11 +18,11 @@ export type PlacePhase = 'optimistic' | 'confirmed' | 'reverted'
 
 const BACK_HINT = 'İçerik eski yerine döndü.'
 
-/** Toast text for a move, e.g. "Yaz kampanyası onaya gönderildi". */
+/** Toast text for a move, e.g. "“Yaz kampanyası” onaya gönderildi". */
 function movedMessage(title: string, from: ContentStatus, to: ContentStatus): string {
-  if (to === 'IN_REVIEW') return `${title} onaya gönderildi`
-  if (from === 'IN_REVIEW' && to === 'DRAFT') return `${title} revizyona gönderildi`
-  return `${title} ${STATUS_LABELS[to]} durumuna taşındı`
+  if (to === 'IN_REVIEW') return `${quoted(title)} onaya gönderildi`
+  if (from === 'IN_REVIEW' && to === 'DRAFT') return `${quoted(title)} revizyona gönderildi`
+  return `${quoted(title)} ${STATUS_LABELS[to]} durumuna taşındı`
 }
 
 /** How an item looks while its publish is waiting: already published, with no next moves. */
@@ -77,7 +78,7 @@ export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase
       // Undo is the reverse move, so it is only offered when the rule allows it.
       const canUndo = !isUndo && updated.allowedTransitions.includes(original.status)
       toast.success(
-        isUndo ? `${updated.title} tekrar ${STATUS_LABELS[target]} durumunda` : movedMessage(updated.title, original.status, target),
+        isUndo ? `${quoted(updated.title)} tekrar ${STATUS_LABELS[target]} durumunda` : movedMessage(updated.title, original.status, target),
         {
           // Every status toast that offers "Geri al" stays as long as a deferred move waits (hover still pauses it).
           duration: canUndo ? DEFER_DELAY_MS : undefined,
@@ -89,7 +90,7 @@ export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase
     } catch (e) {
       place(original, 'reverted')
       const { title, description } = statusChangeError(e)
-      toast.error(title, { description: `${description} ${BACK_HINT}` })
+      toast.error(title, { description: `${quoted(original.title)}: ${description} ${BACK_HINT}` })
     } finally {
       pending.delete(item.id)
     }
@@ -98,6 +99,9 @@ export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase
   return {
     move,
     isPending,
+    /** Every item with a move in flight here (sent at once, or a publish still waiting), e.g. so another
+     *  part of the page can block a second PATCH for it. */
+    pendingIds: computed(() => [...pending, ...publishing.pendingMoves.value.map((entry) => entry.item.id)]),
     /** Publishes still waiting for their PATCH; views re-apply them after reloading data. */
     publishingItems: computed(() => publishing.pendingMoves.value.map((entry) => entry.item)),
     /** Sends waiting publishes now (e.g. when the edit sheet's page is left). */

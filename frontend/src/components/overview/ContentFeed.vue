@@ -25,8 +25,11 @@ import { cn } from '@/lib/utils'
 const props = defineProps<{
   /** Brands for the filter (from the dashboard response, so no extra request). */
   clients: ClientRef[]
-  /** Approvals from the page's panel that are waiting to be sent: their rows show as pending. */
-  approvingIds: number[]
+  /**
+   * Items with a move waiting or in flight elsewhere on the page (the approvals panel, any target):
+   * their rows show as pending and their menu is locked, so no second PATCH is sent.
+   */
+  pendingIds: number[]
   /**
    * Reloads the rest of the page (KPIs, brands, approvals, sidebar badge). Called and awaited with
    * the feed's own reload after a status change from this feed, so everything updates together.
@@ -73,7 +76,6 @@ watch(() => JSON.stringify(filters.value), () => void counts.reload(), { immedia
 async function refresh() {
   await Promise.all([rows.reload(), counts.reload()])
 }
-defineExpose({ refresh })
 
 // Tab counts are the server's: a publish that is still waiting changes nothing until it is done.
 const tabs = computed(() => {
@@ -105,10 +107,13 @@ function place(item: ContentResponse, phase: PlacePhase): Promise<unknown> | voi
   }
   return Promise.all([refresh(), props.reloadSummary()])
 }
-const { move, isPending } = useStatusChange(place)
+const { move, isPending, pendingIds: ownPendingIds } = useStatusChange(place)
 
-/** Pending from this feed's own menus, or approved in the page's panel and still waiting to be sent. */
-const rowPending = (id: number) => isPending(id) || props.approvingIds.includes(id)
+/** Pending from this feed's own menus, or from the page's approvals panel. */
+const rowPending = (id: number) => isPending(id) || props.pendingIds.includes(id)
+
+// This feed's own moves in flight, so the page can lock the same item in the approvals panel.
+defineExpose({ refresh, ownPendingIds })
 
 // ---- Display helpers ------------------------------------------------------------------------
 

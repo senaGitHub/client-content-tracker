@@ -124,3 +124,8 @@ export function formatSince(value: string): string {
   const date = parseISO(value)
   return `${format(date, 'd MMMM yyyy', { locale: tr })}${ablative(date.getFullYear())} beri`
 }
+
+/** A content title as status toasts show it: “Yaz kampanyası”. */
+export function quoted(title: string): string {
+  return `“${title}”`
+}

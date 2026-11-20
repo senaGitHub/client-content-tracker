@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import { contentsApi } from '@/api'
 import type { ContentResponse, ContentStatus } from '@/api'
 import { refreshNavCounts } from '@/composables/useNavCounts'
+import { quoted } from '@/lib/format'
 import { statusChangeError } from '@/lib/errors'
 
 /**
@@ -38,7 +39,7 @@ interface Options {
 
 /** Default toast text while a publish waits (the content page, board, feed and edit sheet). */
 function waitingMessage(title: string): { title: string; description: string } {
-  return { title: `${title} yayına alınıyor`, description: 'Birkaç saniye içinde yayınlanacak.' }
+  return { title: `${quoted(title)} yayına alınıyor`, description: 'Birkaç saniye içinde yayınlanacak.' }
 }
 
 /**
@@ -72,7 +73,7 @@ export function useDeferredMove(options: Options = {}) {
     if (!entry || entry.phase !== 'waiting') return
     clearTimeout(entry.timer)
     pending.delete(id)
-    toast(`${entry.item.title} tekrar Onayda durumunda`)
+    toast(`${quoted(entry.item.title)} tekrar Onayda durumunda`)
     if (alive) options.onCancel?.(entry.item)
   }
 
@@ -91,7 +92,7 @@ export function useDeferredMove(options: Options = {}) {
     } catch (e) {
       const { title, description } = statusChangeError(e)
       const hint = options.failureHint ? ` ${options.failureHint}` : ''
-      toast.error(title, { description: `${entry.item.title}: ${description}${hint}` })
+      toast.error(title, { description: `${quoted(entry.item.title)}: ${description}${hint}` })
       if (alive) options.onFailed?.(entry.item)
     } finally {
       pending.delete(id)

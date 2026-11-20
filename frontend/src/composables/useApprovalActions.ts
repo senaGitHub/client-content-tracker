@@ -2,6 +2,7 @@ import { computed, ref, toValue } from 'vue'
 import type { MaybeRefOrGetter } from 'vue'
 import type { ApprovalItem, ContentResponse } from '@/api'
 import { useDeferredMove } from '@/composables/useDeferredMove'
+import { quoted } from '@/lib/format'
 
 /**
  * Onayla / Revizyon for an approvals queue: the Overview panel and the Onay Süreci page.
@@ -31,8 +32,8 @@ export function useApprovalActions(
     },
     toastText: (item, target) =>
       target === 'DRAFT'
-        ? { title: `“${item.title}” taslağa döndürülüyor`, description: 'Birkaç saniye içinde taslağa dönecek.' }
-        : { title: `“${item.title}” yayına alınıyor`, description: 'Birkaç saniye içinde yayınlanacak.' },
+        ? { title: `${quoted(item.title)} taslağa döndürülüyor`, description: 'Birkaç saniye içinde taslağa dönecek.' }
+        : { title: `${quoted(item.title)} yayına alınıyor`, description: 'Birkaç saniye içinde yayınlanacak.' },
   })
 
   return {
@@ -43,10 +44,8 @@ export function useApprovalActions(
     /** Where this item's waiting (or sending) move goes: 'PUBLISHED', 'DRAFT', or undefined. */
     pendingTarget: deferred.targetOf,
     cancelled,
-    /** Publishes waiting to be sent, so the Overview feed can show those rows as pending. */
-    approvingItems: computed(() =>
-      deferred.pendingMoves.value.filter((entry) => entry.target === 'PUBLISHED').map((entry) => entry.item),
-    ),
+    /** Every item with a waiting (or sending) move, any target, so the Overview feed can block it. */
+    pendingIds: computed(() => deferred.pendingMoves.value.map((entry) => entry.item.id)),
   }
 }
 

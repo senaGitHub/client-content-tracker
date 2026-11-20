@@ -47,7 +47,7 @@ Business rules:
   - Never use real brand names or logos.
 
 ## API (prefix /api)
-- GET /clients?q=&page=&size=&sort= (paged, q searches name/industry/contact; with content counts per status + overdue), POST /clients, GET /clients/{id}
+- GET /clients?q=&page=&size=&sort= (paged, q searches name/industry/contact; with content counts per status + overdue), POST /clients, GET /clients/{id}, PUT /clients/{id} (same validation as POST; 404 if missing)
 - GET /contents?status=&clientId=&type=&q=&overdue=&dueThisWeek=&page=&size=&sort=, POST /contents, PUT /contents/{id}
 - GET /contents/status-counts?clientId=&type=&q=&overdue=&dueThisWeek= → { draft, inReview, published, overdue, total } for the list's status tabs
 - GET /contents/{id}/activity → history, newest first (404 if the content doesn't exist)
@@ -68,7 +68,7 @@ Tests: focused unit tests only, with no Spring context and no DB: the status tra
 
 ## Frontend
 Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with a List | Board toggle (List is the default; the last choice on the device is remembered).
-Dialogs: New client, New/Edit content. Status can also be changed from the ⋯ menu (list rows, board cards) and by drag & drop (board). On a rejected move (409) the card snaps back and a toast explains why.
+Dialogs: New/Edit client (one dialog, two modes), New/Edit content. Status can also be changed from the ⋯ menu (list rows, board cards) and by drag & drop (board). On a rejected move (409) the card snaps back and a toast explains why.
 Pagination: List view is paginated; Board loads the first 20 per column with a "Load more" button (Phase 7).
 UX must-haves: skeleton loading, empty states, toasts (with Undo for status changes), dark mode toggle (persisted), responsive down to mobile, keyboard-friendly dialogs.
 No login, no charts, no fake metrics.
@@ -169,6 +169,7 @@ Redesign decisions:
   - The grid has no dashed "Yeni marka ekle" card. New brands come from the header button, or from the empty state's button when there are no brands.
   - A brand card with nothing overdue and nothing in review shows a small muted 12px "Bekleyen iş yok" in the badge row. The row keeps the badge height, so every card lines up.
   - The New brand dialog's description reads "Markanın adını, sektörünü ve iletişim bilgilerini girin."
+  - Brands are edited from the brand detail hero: a secondary "Düzenle" button (pencil icon) next to the contact button opens the same dialog filled in (`useClientDialog().openEdit`), titled "Markayı düzenle" with "Değişiklikleri kaydet". Same validation as creating. After saving, the toast says "Marka güncellendi" and the brand detail, the Brands list, the sidebar counts and the brand pickers reload.
 - Kanal is picked from a fixed list (ChannelSelect, a Select that opens below the field), with "Kanal yok" first for no channel. The options are `CHANNEL_SUGGESTIONS`: Instagram, Facebook, LinkedIn, TikTok, YouTube, Web sitesi, Blog, E-bülten (every seeded channel is in it). A saved channel that is not in the list shows at the top, selected, so editing never loses it.
 - The edit sheet also has Tür and Kanal fields. Its status buttons apply at once and are separate from "Değişiklikleri kaydet". The PUT body has no status, so saving the form never overwrites a status change.
 - "Bu hafta" (KPI lines) means the last 7 days, rolling, and "geçen hafta" the 7 days before that. The due filter's "Yaklaşan (7 gün)" means due today or in the next 6 days (`dueThisWeek`). Code and API names (`createdThisWeek`, `dueThisWeek`, ...) stay as they are.
@@ -198,5 +199,5 @@ Redesign decisions:
 13. Polish: responsive and dark mode pass, accessibility, README (screenshot, architecture, decisions & trade-offs, what's next, AI usage, how to run, photo credits), DB reset and final deploy.
 
 ## Out of scope (on purpose — mention in README)
-Auth, delete, client editing, multi-module Maven, SSR/Nuxt (internal panel, SPA is enough).
+Auth, delete and archive (brands and content), multi-module Maven, SSR/Nuxt (internal panel, SPA is enough).
 Separate dev/prod databases (one managed Neon Postgres is used for both due to time; in a real project: Docker Compose locally, Testcontainers for tests, managed DB in prod).

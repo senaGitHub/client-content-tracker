@@ -18,7 +18,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 ## Features
 
 ### Core features
-- **Brands (Markalar):** a searchable grid of brands with content counts per status. Each brand has a detail page with its stats and content. You can create a new brand and pick a cover photo for it.
+- **Brands (Markalar):** a searchable grid of brands with content counts per status. Each brand has a detail page with its stats and content. You can create a new brand and pick a cover photo for it, and edit a brand from its detail page.
 - **Content (İçerikler):** create and edit social posts, blog posts and web pages for a brand, with a title, type, channel, due date and notes.
 - **Status pipeline:** content moves Taslak (Draft) → Onayda (In review) → Yayında (Published). A review can also send it back to Draft for revision. The server enforces this rule: any other move returns `409 Conflict`, and the UI explains why in Turkish.
 - **Two views of the same content:**
@@ -96,7 +96,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 
 ### Out of scope (on purpose)
 - **Authentication.** It is an internal panel and the brief didn't ask for it, so the Overview greets by time of day, not by name.
-- **Deleting anything, and editing brands.**
+- **Deleting or archiving anything.**
 - **Multi-module Maven and SSR/Nuxt.** A single Spring Boot app and a plain SPA are enough for an internal tool.
 - **Separate dev and prod databases** (see above).
 
@@ -106,7 +106,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 
 1. Auth (company SSO) and roles, so only approvers can publish. This would also give a real name in the greeting.
 2. Comments and @mentions on content, building on the activity log.
-3. Editing and archiving brands, and soft-deleting content.
+3. Archiving brands, and soft-deleting content.
 4. Integration tests with Testcontainers for the services and the dashboard queries, and Playwright for the main flows.
 5. Calendar view by due date, and notifications for items that become overdue.
 6. Serve the cover list from the API, and compute per-brand overdue counts from the shared Specification.

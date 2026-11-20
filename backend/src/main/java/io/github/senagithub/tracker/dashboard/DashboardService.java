@@ -1,20 +1,18 @@
 package io.github.senagithub.tracker.dashboard;
 
 import io.github.senagithub.tracker.activity.ActivityService;
-import io.github.senagithub.tracker.activity.ActivityService.StatusSince;
+import io.github.senagithub.tracker.approval.ApprovalService;
+import io.github.senagithub.tracker.approval.ApprovalSort;
+import io.github.senagithub.tracker.approval.dto.ApprovalItem;
 import io.github.senagithub.tracker.client.ClientService;
 import io.github.senagithub.tracker.client.dto.ClientResponse;
 import io.github.senagithub.tracker.client.dto.StatusCounts;
-import io.github.senagithub.tracker.content.Content;
 import io.github.senagithub.tracker.content.ContentRepository;
 import io.github.senagithub.tracker.content.ContentSpecifications;
 import io.github.senagithub.tracker.content.ContentStatus;
-import io.github.senagithub.tracker.content.dto.ContentResponse;
-import io.github.senagithub.tracker.dashboard.dto.ApprovalItem;
 import io.github.senagithub.tracker.dashboard.dto.DashboardMetrics;
 import io.github.senagithub.tracker.dashboard.dto.DashboardResponse;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +22,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -40,13 +35,16 @@ public class DashboardService {
     private final ClientService clientService;
     private final ContentRepository contentRepository;
     private final ActivityService activityService;
+    private final ApprovalService approvalService;
 
     public DashboardService(ClientService clientService,
                             ContentRepository contentRepository,
-                            ActivityService activityService) {
+                            ActivityService activityService,
+                            ApprovalService approvalService) {
         this.clientService = clientService;
         this.contentRepository = contentRepository;
         this.activityService = activityService;
+        this.approvalService = approvalService;
     }
 
     public DashboardResponse get() {
@@ -56,31 +54,17 @@ public class DashboardService {
         Instant twoWeeksAgo = weekAgo.minus(WEEK);
 
         List<ClientResponse> clients = clientService.list();
-        List<StatusSince> waiting = activityService.longestIn(ContentStatus.IN_REVIEW, APPROVALS_LIMIT);
+        // The first page of the same queue as GET /api/approvals, so the panel and the page never disagree.
+        List<ApprovalItem> approvals = approvalService.page(null, ApprovalSort.DEFAULT, PageRequest.of(0, APPROVALS_LIMIT)).items();
 
         DashboardMetrics metrics = new DashboardMetrics(
                 contentRepository.count(ContentSpecifications.createdSince(weekAgo)),
                 activityService.countMovedInto(ContentStatus.PUBLISHED, weekAgo, now),
                 activityService.countMovedInto(ContentStatus.PUBLISHED, twoWeeksAgo, weekAgo),
-                waiting.isEmpty() ? null : daysSince(waiting.getFirst().since(), today),
+                approvals.isEmpty() ? null : daysSince(approvals.getFirst().inReviewSince(), today),
                 oldestOverdueDays(today));
 
-        return new DashboardResponse(sumCounts(clients), metrics, clients, approvals(waiting, today));
-    }
-
-    /** Loads the waiting items in one query and keeps the longest-waiting-first order. */
-    private List<ApprovalItem> approvals(List<StatusSince> waiting, LocalDate today) {
-        if (waiting.isEmpty()) {
-            return List.of();
-        }
-        List<Long> ids = waiting.stream().map(StatusSince::contentId).toList();
-        Specification<Content> byIds = (root, q, cb) -> root.get("id").in(ids);
-        Map<Long, Content> byId = contentRepository.findAll(byIds, ContentSpecifications.BY_DUE_DATE).stream()
-                .collect(Collectors.toMap(Content::getId, Function.identity()));
-        // The activity log's "since" travels with each item, so the panel can say how long it has waited.
-        return waiting.stream()
-                .map(entry -> new ApprovalItem(ContentResponse.from(byId.get(entry.contentId()), today), entry.since()))
-                .toList();
+        return new DashboardResponse(sumCounts(clients), metrics, clients, approvals);
     }
 
     /** Uses the same overdue specification as the list filter, so the rule stays in one place. */

@@ -1,5 +1,6 @@
 package io.github.senagithub.tracker.dashboard.dto;
 
+import io.github.senagithub.tracker.approval.dto.ApprovalItem;
 import io.github.senagithub.tracker.client.dto.ClientResponse;
 import io.github.senagithub.tracker.client.dto.StatusCounts;
 

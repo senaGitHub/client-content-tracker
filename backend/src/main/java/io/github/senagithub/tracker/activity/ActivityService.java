@@ -1,9 +1,12 @@
 package io.github.senagithub.tracker.activity;
 
+import io.github.senagithub.tracker.activity.ActivityLogRepository.QueueOrder;
 import io.github.senagithub.tracker.activity.dto.ActivityResponse;
 import io.github.senagithub.tracker.content.Content;
 import io.github.senagithub.tracker.content.ContentStatus;
-import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,12 +33,17 @@ public class ActivityService {
     public record StatusSince(Long contentId, Instant since) {
     }
 
-    /** Content currently in {@code status}, longest-waiting first, at most {@code limit} items. */
+    /**
+     * Content currently in {@code status}, one page of it, in the given order.
+     *
+     * @param clientId only this client's content, or every client when null
+     * @param page     page index and size; any sort on it is replaced by {@code order}
+     */
     @Transactional(readOnly = true)
-    public List<StatusSince> longestIn(ContentStatus status, int limit) {
-        return activityLogRepository.findLongestInStatus(status, Limit.of(limit)).stream()
-                .map(row -> new StatusSince(row.getContentId(), row.getSince()))
-                .toList();
+    public Page<StatusSince> inStatus(ContentStatus status, Long clientId, QueueOrder order, Pageable page) {
+        Pageable sorted = PageRequest.of(page.getPageNumber(), page.getPageSize(), order.sort());
+        return activityLogRepository.findInStatus(status, clientId, sorted)
+                .map(row -> new StatusSince(row.getContentId(), row.getSince()));
     }
 
     /** How many status changes into {@code status} happened in [from, to). */

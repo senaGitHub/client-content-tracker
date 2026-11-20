@@ -1,12 +1,11 @@
 # Harbour — Client & Content Tracker (MVP)
 
 ## Context
-Take-home case study for a Full Stack Developer role at an in-house agency of a hospitality group (hotels in Bodrum, Cappadocia, Antalya).
+Harbour is a full-stack web app I designed and built: an internal tool for the in-house content team of a hospitality group (hotels in Bodrum, Cappadocia, Antalya). All brands and data are fictional.
 Users: account managers. They track clients (group brands) and content per client (social posts, blog posts, web pages) through a status pipeline.
-Deadline: Friday Nov 20, 2026, 23:59 — deliverable is a live URL + GitHub repo. Reviewers care most about design and UX.
+Focus: design and UX, with a clean, well-tested API behind it.
 
 ## Working rules (important)
-- Talk to me in Turkish. Code, identifiers, comments, commit messages and README in English.
 - Work phase by phase (see Phases). Before each phase: show a short plan and wait for my approval. Do not start the next phase on your own.
 - Keep changes scoped to the current phase. No unrequested refactors or features.
 - Do not add libraries that are not listed in Stack without asking me first.
@@ -196,7 +195,7 @@ Redesign decisions:
 1. Backend skeleton: Spring Boot project, entities, Flyway migration, repositories, demo seeder. Connect to Neon.
 2. Backend API: DTOs, services, controllers, validation, ProblemDetail errors, status rule + unit test, Swagger.
 3. Dashboard endpoint.
-4. Backend deploy: Dockerfile, Render config, env vars, and a docker-compose.yml (app + postgres) so reviewers can run the backend locally with one command.
+4. Backend deploy: Dockerfile, Render config, env vars, and a docker-compose.yml (app + postgres) so anyone can run the backend locally with one command.
 5. Frontend skeleton: Vite + TS + Tailwind + shadcn-vue, router, layout, theme (light/dark), API client.
 6. Overview page. ✓ (old design)
 7. Content page: Board (drag & drop) + List (filters, inline status). ✓ (old design)

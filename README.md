@@ -183,7 +183,7 @@ The workflow passed on its first run (commit `ad0f5b1`), and the badge at the to
 
 - **Implementation:** done with **Claude Code** (Claude Opus 5.5) in the repository, working phase by phase from a written plan (`CLAUDE.md`).
 - **Planning and review:** plan review, visual QA against the design mockups, and decision-making happened in a **separate Claude chat**.
-- **Owner's role:** I wrote the brief into `CLAUDE.md`, approved each phase's plan before any code was written, and chose between the options the AI proposed (for example extending the 5-second undo to every publish, and letting the board scroll sideways instead of collapsing to one column). Every phase was checked before commit — in the browser at different widths and in both themes — and this review caught real bugs, such as a router pattern that made brand pages 404 on refresh and a list that opened with old published items first.
+- **Owner's role:** I wrote the product spec into `CLAUDE.md`, approved each phase's plan before any code was written, and chose between the options the AI proposed (for example extending the 5-second undo to every publish, and letting the board scroll sideways instead of collapsing to one column). Every phase was checked before commit — in the browser at different widths and in both themes — and this review caught real bugs, such as a router pattern that made brand pages 404 on refresh and a list that opened with old published items first.
 
 ---
 

@@ -83,7 +83,7 @@ public class DemoDataSeeder implements ApplicationRunner {
                     new ContentSeed("Havuz başı DJ gecesi", SOCIAL_POST, "Instagram", IN_REVIEW, 0, null),
                     new ContentSeed("Aile odaları karşılaştırma sayfası", WEB_PAGE, WEB, DRAFT, 18, null),
                     new ContentSeed("Kamera arkası: şeflerimiz", SOCIAL_POST, "YouTube", PUBLISHED, -2, null),
-                    new ContentSeed("Gelecek sezon erken rezervasyon", SOCIAL_POST, "Instagram", DRAFT, -1,
+                    new ContentSeed("Gelecek sezon erken rezervasyon", SOCIAL_POST, "Instagram", DRAFT, 7,
                             "Kampanya koşulları hukuk onayında."))),
             new ClientSeed("Olive & Stone Spa", "Spa ve wellness", "Zeynep Arslan", "zeynep.arslan@olivestone.example",
                     CoverImages.SPA_POOL, List.of(
@@ -107,7 +107,7 @@ public class DemoDataSeeder implements ApplicationRunner {
                     CoverImages.SEASIDE_YOGA, List.of(
                     new ContentSeed("Hasta yolculuğu videosu", SOCIAL_POST, "YouTube", IN_REVIEW, 6, null),
                     new ContentSeed("Diş tedavisi paketleri sayfası", WEB_PAGE, WEB, PUBLISHED, -8, null),
-                    new ContentSeed("Saç ekimi sonrası iyileşme: neler beklenmeli", BLOG_POST, WEB, IN_REVIEW, -1,
+                    new ContentSeed("Saç ekimi sonrası iyileşme: neler beklenmeli", BLOG_POST, WEB, IN_REVIEW, 3,
                             "Tıbbi ekip iddiaları kontrol ediyor."),
                     new ContentSeed("Uluslararası hasta ekibimizle tanışın", SOCIAL_POST, "LinkedIn", DRAFT, 12, null),
                     new ContentSeed("Akreditasyon duyurusu", SOCIAL_POST, "LinkedIn", PUBLISHED, -3, null),

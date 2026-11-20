@@ -10,6 +10,7 @@ import io.github.senagithub.tracker.content.ContentRepository;
 import io.github.senagithub.tracker.content.ContentSpecifications;
 import io.github.senagithub.tracker.content.ContentStatus;
 import io.github.senagithub.tracker.content.dto.ContentResponse;
+import io.github.senagithub.tracker.dashboard.dto.ApprovalItem;
 import io.github.senagithub.tracker.dashboard.dto.DashboardMetrics;
 import io.github.senagithub.tracker.dashboard.dto.DashboardResponse;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 public class DashboardService {
 
     /** How many items the Overview's approvals panel shows; "Tüm onaylar" opens the rest. */
-    public static final int APPROVALS_LIMIT = 5;
+    public static final int APPROVALS_LIMIT = 4;
 
     private static final Duration WEEK = Duration.ofDays(7);
 
@@ -68,7 +69,7 @@ public class DashboardService {
     }
 
     /** Loads the waiting items in one query and keeps the longest-waiting-first order. */
-    private List<ContentResponse> approvals(List<StatusSince> waiting, LocalDate today) {
+    private List<ApprovalItem> approvals(List<StatusSince> waiting, LocalDate today) {
         if (waiting.isEmpty()) {
             return List.of();
         }
@@ -76,9 +77,9 @@ public class DashboardService {
         Specification<Content> byIds = (root, q, cb) -> root.get("id").in(ids);
         Map<Long, Content> byId = contentRepository.findAll(byIds, ContentSpecifications.BY_DUE_DATE).stream()
                 .collect(Collectors.toMap(Content::getId, Function.identity()));
-        return ids.stream()
-                .map(byId::get)
-                .map(content -> ContentResponse.from(content, today))
+        // The activity log's "since" travels with each item, so the panel can say how long it has waited.
+        return waiting.stream()
+                .map(entry -> new ApprovalItem(ContentResponse.from(byId.get(entry.contentId()), today), entry.since()))
                 .toList();
     }
 

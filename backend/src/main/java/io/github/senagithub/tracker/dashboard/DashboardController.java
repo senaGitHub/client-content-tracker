@@ -20,7 +20,7 @@ public class DashboardController {
 
     @GetMapping
     @Operation(summary = "Everything the Overview page needs: totals, weekly metrics, "
-            + "client summaries and the 5 longest-waiting approvals")
+            + "client summaries and the longest-waiting approvals")
     public DashboardResponse get() {
         return dashboardService.get();
     }

@@ -32,7 +32,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 - **Approvals panel with one-click Onayla / Revizyon.** Approving is the account manager's most frequent action, so the longest-waiting items are on the first screen.
 - **Activity log.** The service layer writes one row for every create, edit and status change. This one table powers three things without any fake metrics:
   - the edit sheet's history,
-  - "published this week vs last week",
+  - "published this week",
   - "waiting for approval for N days".
 - **Undo for publishing, without breaking the rule.** Published content cannot go back on the server (see trade-offs). So every move to Yayında, wherever it starts, is held in the browser for about 5 seconds, and **Geri al** cancels it before anything is sent. Other moves are sent at once, and their Undo sends the reverse move.
 - **Priority sort** (`sort=priority`): unpublished content first, oldest due date first, so overdue items lead the Overview feed.
@@ -92,6 +92,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
   - Dialogs trap focus, start in their first field, and return focus to the button that opened them.
   - Every icon-only button has a label.
   - The board has a keyboard alternative to drag and drop: each card's menu.
+- **"Marka", not "Müşteri".** The UI says "Marka" instead of "Müşteri" because an in-house agency's clients are the group's own brands.
 
 ### Out of scope (on purpose)
 - **Authentication.** It is an internal panel and the brief didn't ask for it, so the Overview greets by time of day, not by name.
@@ -110,6 +111,7 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 5. Calendar view by due date, and notifications for items that become overdue.
 6. Serve the cover list from the API, and compute per-brand overdue counts from the shared Specification.
 7. Optimistic locking. Content has no `@Version`, so two concurrent status changes (say IN_REVIEW → PUBLISHED and IN_REVIEW → DRAFT) can both pass the transition check, and the last write wins. That can break "published is final", and the same goes for concurrent PUT edits. The fix is a `@Version` column (Flyway V3) and mapping `ObjectOptimisticLockingFailureException` to 409.
+8. A link field per content (the draft doc or the published post URL), since Harbour tracks the work, not the asset itself.
 
 ---
 
@@ -180,4 +182,3 @@ All photos are from [Unsplash](https://unsplash.com) and used under the [Unsplas
 | `covers/antalya-cliffs.jpg` | [Rocky cliffs frame a sparkling ocean inlet](https://unsplash.com/photos/PcmXa54jfoA) | [engin akyurt](https://unsplash.com/@enginakyurt) |
 | `covers/seaside-yoga.jpg` | [Woman doing yoga near calm water at golden hour](https://unsplash.com/photos/2hKNq2rX93g) | [Lāsma Artmane](https://unsplash.com/@lasmaa) |
 | `covers/olive-table.jpg` | [Table setting with an olive branch](https://unsplash.com/photos/K_DV89F2r_k) | [micheile henderson](https://unsplash.com/@micheile) |
-| `sidebar-pool-edge.jpg` | [Terracotta tiled edge of a swimming pool](https://unsplash.com/photos/GmJ7m4wZ3fU) | [Joachim Lesne](https://unsplash.com/@joaching) |

@@ -34,7 +34,7 @@ Business rules:
 - Demo data:
   - A seeder runs on startup only if the DB is empty.
   - Dates are relative to today, so overdue items and this week always look realistic.
-  - There are 6 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health), each with a cover, and 36 contents.
+  - There are 6 fictional hospitality brands (Turkuaz Bay Bodrum, Peri Cave Hotel, Lara Sands Resort, Olive & Stone Spa, Antalya Travel Co., Medina Health), each with a cover, and 36 contents (about 14 Taslak / 10 Onayda / 12 Yayında; 3 of them overdue on the seed day).
   - Titles, notes and industries are in Turkish; brand names are not.
   - Never use real brand names or logos.
 
@@ -43,7 +43,7 @@ Business rules:
 - GET /contents?status=&clientId=&type=&q=&overdue=&dueThisWeek=&page=&size=&sort=, POST /contents, PUT /contents/{id}
 - GET /contents/status-counts?clientId=&type=&q=&overdue=&dueThisWeek= → { draft, inReview, published, overdue, total } for the list's status tabs
 - GET /contents/{id}/activity → history, newest first (404 if the content doesn't exist)
-- Content responses carry client { id, name, coverImageUrl }; the cover is the content thumbnail.
+- Content responses carry client { id, name, coverImageUrl }; the cover is the content thumbnail where one is shown.
 - Paged lists return { items, page (0-based), size, totalElements, totalPages, hasNext }; size defaults to 20, max 100; sort is whitelisted (unknown property → 400). overdue / dueThisWeek use the same specifications as the dashboard.
 - GET /contents also accepts `sort=priority` (used on its own): unpublished first by due date ascending (so overdue leads), then published, newest due date first. Used by the Overview feed and its "Tüm içerikler" link.
 - PATCH /contents/{id}/status  body: { "status": "..." }  → 409 on invalid transition
@@ -51,7 +51,7 @@ Business rules:
   - `totals`: counts per status, plus overdue and total.
   - `metrics`: createdThisWeek, publishedThisWeek, publishedLastWeek, oldestInReviewDays, oldestOverdueDays. The last two are null when there is nothing to measure. "Week" means the last 7 days, rolling.
   - `clients`: every client with its counts and cover.
-  - `approvals`: the 5 longest-waiting items in review, longest first. The full count is `totals.inReview`.
+  - `approvals`: the 4 longest-waiting items in review, longest first. The full count is `totals.inReview`. Each item is a flat content response plus `inReviewSince` (ISO instant: when it last moved into IN_REVIEW, from activity_log). It is the `ApprovalItem` record with the content `@JsonUnwrapped`, so the existing fields stay at the top level.
 Errors: @RestControllerAdvice returning ProblemDetail (RFC 7807). Validation errors → 400 with field messages. CORS origins from env var.
 
 ## Backend structure
@@ -71,11 +71,20 @@ Source of truth: static mockups in `design/` (git-ignored; read `design/README.m
 UI language: Turkish (all visible copy, dates via the date-fns `tr` locale). Code, identifiers, API messages, commits and README stay English. The frontend maps API errors (409, field errors) to Turkish text.
 Labels: statuses Taslak / Onayda / Yayında; types Sosyal Medya / Blog Yazısı / Web Sayfası. Nav: Genel Bakış, Markalar, İçerikler, Onay Süreci (a shortcut to the content list filtered to Onayda, with a count badge; not a separate page).
 
-Font: Inter 400–800; page titles 30–32px / 800 / tight tracking. Radius: inputs and buttons 10px, kanban cards 14px, cards 18px, dialogs 20px, chips and badges full. Very soft shadows on cards (0 2px 10px rgba(60,30,20,.04)) and stronger ones on popovers, sheets and dialogs. No emoji.
+Font: Inter 400–800. The type scale is defined once, as `@theme` tokens in `frontend/src/assets/main.css` (size, line height, weight and tracking together); use the tokens instead of fixed sizes:
+- `text-page-title` 24px / 700 (PageHeader h1, including the Overview greeting),
+- `text-section-title` 16px / 600 (section headings such as "Dikkat isteyen markalar", "İçerik akışı", "Onay bekleyenler"),
+- `text-nav` 14px / 500 (sidebar menu; the active item is 600),
+- `text-logo` 18px / 800 ("Harbour"),
+- `text-kpi` 28px / 700 (KPI numbers),
+- body copy `text-sm` (14px).
+
+The brand detail hero, its "İçerikler" heading, board column headings and the 404 title keep their own sizes for now.
+Radius: inputs and buttons 10px, kanban cards 14px, cards 18px, dialogs 20px, chips and badges full. Very soft shadows on cards (0 2px 10px rgba(60,30,20,.04)) and stronger ones on popovers, sheets and dialogs. No emoji.
 Gradients only where the mockups use them: the logo tile and dark scrims on photos so the text on them stays readable.
 
 Colour rules:
-- RED (#D92D20) is reserved for overdue only: solid overdue chips, the Geciken tile and overdue dates. Validation errors and link hovers use the dark coral, never red.
+- RED (#D92D20) is reserved for overdue only: solid overdue chips, the Geciken tile and overdue dates. Validation errors and link hovers use the dark coral, never red. The Overview approvals panel uses no red at all, even for overdue items.
 - Primary buttons are dark (#1C1716 with white text).
 - The accent is coral, used for the active nav item, selected tabs, links, focus and the drop target.
 - Coral #E0623F is under 4.5:1 on white, so text smaller than 18px uses the dark coral #AB4427 (darkened from #C9502E in Phase 13 so it also passes 4.5:1 on the tinted sidebar, nav-active and coral-soft backgrounds).
@@ -105,20 +114,36 @@ Colour rules:
 Layout:
 - The sidebar (#FCF3EF) holds:
   - The logo: a coral gradient tile with an anchor icon, "Harbour" with a coral dot, and the subtitle "Brand & Content Workspace".
-  - Nav items with counts.
-  - A full-bleed photo at the bottom with a "Demo veriler" pill.
+  - Nav items. Only Onay Süreci has a count: a coral badge, hidden at 0. Markalar and İçerikler have no numbers.
+  - A small, plain "Demo veriler" pill at the very bottom. There is no photo in the sidebar.
+- The theme toggle is icon-only, with an aria-label and a tooltip. It is not in the sidebar:
+  - On desktop it sits in the shared PageHeader, top right, next to the page actions. The brand detail page has no PageHeader, so it sits in the hero's top-right corner. The 404 page has none.
+  - On mobile it stays in the top bar, on the right.
 - Main content sits directly on bg. On mobile the sidebar becomes a drawer.
 - Toasts are dark with an inline "Geri al" action.
 - Editing content opens a right-side Sheet. New content opens a Dialog.
 
 Photos:
 - Use high-quality Unsplash JPGs in `frontend/public/images`: 1600px wide, about 300 KB or less each.
-- Each brand has `coverImageUrl`. Content thumbnails use their brand's cover.
+- Each brand has `coverImageUrl`. Where content has a thumbnail (board cards, the content list, the edit sheet, the approvals panel), it is the brand's cover. The Overview content feed has no thumbnails.
 - Credit the photographers with links in the README.
 - Brands stay the fictional seed names.
 
 Redesign decisions:
-- Overview greeting changes with the time of day. It has no name and no avatar, because there is no login.
+- Overview greeting changes with the time of day. It has no name and no avatar, because there is no login. Under it is the full date in small, muted text ("20 Kasım 2026, Cuma"). There is no summary sentence and no separate date box. Greeting and date update once a minute, so a tab left open stays right.
+- The Overview header has only "Yeni İçerik" and the theme toggle: no search box and no "Yeni marka" card. New brands are created on the Markalar page.
+- KPI tiles have one short line each, hidden when the value is 0 or null:
+  - Toplam içerik: "+N bu hafta",
+  - Onay bekleyen: "en eskisi N gündür" ("hepsi bugün geldi" for 0 days),
+  - Yayında: "+N bu hafta" (no last-week comparison in the UI),
+  - Geciken: "en eskisi N gün".
+- "Dikkat isteyen markalar" shows 4 brands: most overdue first, then most in review, then most content.
+- Each approvals panel item shows how long it has waited in review: a neutral chip "N gündür bekliyor" ("bugün gönderildi" for 0 days), with a small grey "Teslim: 23 Kas" next to it. The line under the title has only the brand name.
+- The Overview content feed (İçerik akışı):
+  - No row thumbnails. The type icon sits left of the title (tooltip and screen-reader label from ContentTypeIcon), so there is no separate Tür column.
+  - Columns: İçerik 44% / Marka 24% / Teslim 16% / Durum 16%.
+  - The status menu stays in the feed for inline changes.
+- Status badges in StatusMenu (feed, content list, brand detail) are `uniform`: every badge is as wide as the longest label, so the chevrons line up. The feed's "Durum" header is centred over the badge, with its width taken from the same component.
 - Publishing cannot be undone on the server, so every move to Yayında is deferred, wherever it starts: "Onayla" in the approvals panel, the edit sheet, board drag & drop, and the list and feed menus. The PATCH is sent after about 5 seconds, and "Geri al" cancels it, so nothing is sent. A pending PATCH is flushed when the user leaves the page or closes the tab. Every other move is sent at once, and its "Geri al" sends the reverse move. The status rule stays strict.
 - The edit sheet also has Tür and Kanal fields. Its status buttons apply at once and are separate from "Değişiklikleri kaydet". The PUT body has no status, so saving the form never overwrites a status change.
 - "Bu hafta" means the last 7 days, "geçen hafta" the 7 days before that.

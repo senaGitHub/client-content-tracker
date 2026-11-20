@@ -22,8 +22,8 @@ The UI is in Turkish because the users are. Code, API messages, commits and this
 - **Content (İçerikler):** create and edit social posts, blog posts and web pages for a brand, with a title, type, channel, due date and notes.
 - **Status pipeline:** content moves Taslak (Draft) → Onayda (In review) → Yayında (Published). A review can also send it back to Draft for revision. The server enforces this rule: any other move returns `409 Conflict`, and the UI explains why in Turkish.
 - **Two views of the same content:**
+  - **List** (the default): filters (brand, type, due date, search), status tabs with counts, status changes from each row's ⋯ menu, and pagination.
   - **Board:** a kanban with drag and drop. A rejected move snaps the card back and a toast explains why.
-  - **List:** filters (brand, type, due date, search), status tabs with counts, inline status changes and pagination.
 - **Overdue:** computed, not stored. A due date in the past and not yet published counts as overdue. It is the only thing shown in red.
 - **Overview (Genel Bakış):** KPI tiles, the brands that need attention, a content feed and the approvals queue. Every number on it comes from real data.
 - **UX basics:** skeleton loading, empty states, toasts with **Geri al** (Undo), a persisted dark mode, keyboard-friendly dialogs, and a responsive layout down to 375px.

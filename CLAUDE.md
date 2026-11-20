@@ -59,8 +59,8 @@ Package by feature: `client`, `content`, `dashboard`, `activity`, `common` (erro
 Tests: only a focused unit test for the status transition rule.
 
 ## Frontend
-Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with Board | List toggle.
-Dialogs: New client, New/Edit content. Status can also be changed inline (list) and by drag & drop (board). On a rejected move (409) the card snaps back and a toast explains why.
+Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with a List | Board toggle (List is the default; the last choice on the device is remembered).
+Dialogs: New client, New/Edit content. Status can also be changed from the ⋯ menu (list rows, board cards) and by drag & drop (board). On a rejected move (409) the card snaps back and a toast explains why.
 Pagination: List view is paginated; Board loads the first 20 per column with a "Load more" button (Phase 7).
 UX must-haves: skeleton loading, empty states, toasts (with Undo for status changes), dark mode toggle (persisted), responsive down to mobile, keyboard-friendly dialogs.
 No login, no charts, no fake metrics.
@@ -125,7 +125,7 @@ Layout:
 
 Photos:
 - Use high-quality Unsplash JPGs in `frontend/public/images`: 1600px wide, about 300 KB or less each.
-- Each brand has `coverImageUrl`. Where content has a thumbnail (board cards, the content list, the edit sheet, the approvals panel), it is the brand's cover. The Overview content feed has no thumbnails.
+- Each brand has `coverImageUrl`. Where content has a thumbnail (the edit sheet, the approvals panel), it is the brand's cover. The Overview feed, the content list and board cards have no thumbnails.
 - Credit the photographers with links in the README.
 - Brands stay the fictional seed names.
 
@@ -149,6 +149,12 @@ Redesign decisions:
 - While a publish waits, no number on the Overview changes: KPIs, brand cards, feed tab counts and the sidebar badge keep their server values. The feed shows that row's StatusMenu pending state (badge + spinner), not "Yayında". Once the PATCH is done, everything reloads together (refreshAll, awaited), so nothing flickers. The sidebar badge updates the same way everywhere (refreshNavCounts after the publish). The Content page's board and list still move the card to Yayında at once.
 - Status badges in StatusMenu (feed, content list, brand detail) are `uniform`: every badge is as wide as the longest label, so the chevrons line up. The feed's "Durum" header is centred over the badge, with its width taken from the same component.
 - Publishing cannot be undone on the server, so every move to Yayında is deferred, wherever it starts: "Onayla" in the approvals panel, the edit sheet, board drag & drop, and the list and feed menus. The PATCH is sent after about 5 seconds, and "Geri al" cancels it, so nothing is sent. A pending PATCH is flushed when the user leaves the page or closes the tab. Every other move is sent at once, and its "Geri al" sends the reverse move. The status rule stays strict.
+- The Content page (İçerikler):
+  - It opens on List when the URL has no `view` and nothing was picked on this device; the toggle reads "Liste | Pano". `?view=board` / `?view=list` links still work.
+  - In the list, Durum is read-only: a `uniform` StatusBadge with no chevron. Status changes go through the ⋯ menu (ContentActionsMenu: Düzenle + status moves), on desktop and mobile rows. The ⋯ menu shows the pending spinner.
+  - List rows and board cards have no thumbnails. Under the title, a muted 12px line shows the channel (hidden when there is none). The list keeps its Tür column; mobile rows read "type icon · channel · brand · date".
+  - On the board, a press on a card's ⋯ trigger, links or menu items never starts a drag (SortableJS `filter`, `preventOnFilter: false`). The stretched title button (`data-card-open`) still drags, so the rest of the card does too.
+- Kanal is picked from a fixed list (ChannelSelect, a Select that opens below the field), with "Kanal yok" first for no channel. The options are `CHANNEL_SUGGESTIONS`: Instagram, Facebook, LinkedIn, TikTok, YouTube, Web sitesi, Blog, E-bülten (every seeded channel is in it). A saved channel that is not in the list shows at the top, selected, so editing never loses it.
 - The edit sheet also has Tür and Kanal fields. Its status buttons apply at once and are separate from "Değişiklikleri kaydet". The PUT body has no status, so saving the form never overwrites a status change.
 - "Bu hafta" means the last 7 days, "geçen hafta" the 7 days before that.
 - The old Overview sections ("This week" strip and "Recent activity") are removed from the UI and from the API.

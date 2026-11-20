@@ -31,6 +31,14 @@ ActivityLog: id, content, action (CREATED | UPDATED | STATUS_CHANGED), fromStatu
 Business rules:
 - Allowed status transitions: DRAFT → IN_REVIEW, IN_REVIEW → PUBLISHED, IN_REVIEW → DRAFT (revision). Everything else is rejected with HTTP 409. The rule lives in the domain (enum method) and is enforced in the service.
 - "Overdue" is computed, not stored: dueDate < today AND status != PUBLISHED.
+- Text validation (Bean Validation on the request records; `\p{L}` = any Unicode letter, so Turkish letters count):
+  - Brand name: at least 2 characters and at least one letter (digits are fine, e.g. "Otel 7").
+  - Industry: at least 2 characters; letters, spaces and `& - , .` only.
+  - Contact name: at least 2 characters; letters, spaces and `' - .` only.
+  - Content title: at least one letter.
+  - Messages stay English in the API ("... must contain at least one letter.", "... may only contain letters, spaces and ..."); `frontend/src/lib/errors.ts` turns them into Turkish.
+  - The frontend mirrors the same rules in `frontend/src/lib/validation.ts`, the one place for them and their Turkish messages. Change both sides together.
+  - In every form (New brand, New content, edit sheet), changing a field clears that field's error and `aria-invalid` at once, leaving other fields alone. Blur re-checks a non-empty field; "required" shows on submit.
 - Demo data:
   - A seeder runs on startup only if the DB is empty.
   - Dates are relative to today, so overdue items and this week always look realistic.
@@ -56,7 +64,7 @@ Errors: @RestControllerAdvice returning ProblemDetail (RFC 7807). Validation err
 
 ## Backend structure
 Package by feature: `client`, `content`, `dashboard`, `activity`, `common` (errors, config). Controller → Service → Repository. Entities never leave the service layer; controllers use record DTOs. Schema via Flyway migrations.
-Tests: only a focused unit test for the status transition rule.
+Tests: focused unit tests only, with no Spring context and no DB: the status transition rule (`ContentStatusTest`) and request validation (`ClientRequestValidationTest`, `ContentRequestValidationTest`, plain Bean Validation).
 
 ## Frontend
 Pages: Overview (/), Clients (/clients), Client detail (/clients/:id), Content (/content) with a List | Board toggle (List is the default; the last choice on the device is remembered).

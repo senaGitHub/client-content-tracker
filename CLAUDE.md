@@ -6,6 +6,7 @@ Users: account managers. They track clients (group brands) and content per clien
 Focus: design and UX, with a clean, well-tested API behind it.
 
 ## Working rules (important)
+- Code, identifiers, comments, commit messages and README are in English. The UI is in Turkish.
 - Work phase by phase (see Phases). Before each phase: show a short plan and wait for my approval. Do not start the next phase on your own.
 - Keep changes scoped to the current phase. No unrequested refactors or features.
 - Do not add libraries that are not listed in Stack without asking me first.

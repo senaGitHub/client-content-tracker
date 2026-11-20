@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- Same as the sidebar's logo tile (BrandMark): coral gradient at 140deg (--logo-from → --logo-to), radius 10/32. -->
+  <!-- Same as the sidebar's logo tile (BrandMark): coral gradient at 140deg, from the logo-from to the logo-to colour token, radius 10/32. -->
   <defs>
     <linearGradient id="tile" x1="0.18" y1="0.12" x2="0.82" y2="0.88">
       <stop offset="0" stop-color="#F4895A"/>

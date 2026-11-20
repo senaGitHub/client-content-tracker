@@ -198,7 +198,7 @@ const chip = 'rounded-full px-2.5 py-[3px] text-xs font-semibold'
     <section aria-labelledby="brand-contents" class="flex flex-col gap-3.5">
       <div class="flex flex-wrap items-center gap-x-3.5 gap-y-2">
         <h2 id="brand-contents" class="text-[22px] font-bold">İçerikler</h2>
-        <div role="group" aria-label="Durum" class="-mx-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
+        <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
           <button
             v-for="tab in tabs"
             :key="tab.label"

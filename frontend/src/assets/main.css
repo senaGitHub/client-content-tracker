@@ -237,8 +237,15 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /*
+   * Always reserve the scrollbar's space so the layout doesn't shift when a page grows tall
+   * enough to scroll. The reserved strip shows the html background, so html gets the theme
+   * background too (not only body); color-scheme keeps the scrollbar itself on theme.
+   */
   html {
+    @apply bg-background;
     color-scheme: light;
+    scrollbar-gutter: stable;
   }
   html.dark {
     color-scheme: dark;

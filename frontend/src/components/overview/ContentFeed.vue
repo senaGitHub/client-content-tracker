@@ -118,7 +118,7 @@ const isEmpty = computed(() => !!rows.data.value && rows.data.value.totalElement
     <div class="mb-2.5 flex flex-wrap items-center gap-3">
       <h2 id="overview-feed" class="mr-1.5 text-lg font-bold">İçerik akışı</h2>
 
-      <div role="group" aria-label="Durum" class="-mx-1 flex max-w-full gap-0.5 overflow-x-auto px-1">
+      <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 flex max-w-full gap-0.5 overflow-x-auto px-1">
         <button
           v-for="tab in tabs"
           :key="tab.label"

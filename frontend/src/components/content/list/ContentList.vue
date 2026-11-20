@@ -293,7 +293,9 @@ const pagerButton = 'h-10 min-w-10 rounded-lg border-input bg-card px-4 text-sm 
     <!-- Paging -->
     <div v-if="data && data.totalElements > 0" class="flex flex-col items-center gap-3 px-2.5 pt-3.5 pb-1.5 sm:flex-row sm:justify-between">
       <p class="text-[13px] text-muted-foreground tabular-nums" aria-live="polite">{{ range }}</p>
+      <!-- The range text always shows; the pager only when there is more than one page. -->
       <Pagination
+        v-if="data.totalPages > 1"
         :page="page"
         :total="data.totalElements"
         :items-per-page="PAGE_SIZE"

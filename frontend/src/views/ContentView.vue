@@ -92,7 +92,7 @@ const resultCount = computed(() => {
     />
 
     <template v-if="state.view === 'list'">
-      <div role="group" aria-label="Durum" class="-mx-1 -my-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
+      <div role="group" aria-label="Durum" class="no-scrollbar -mx-1 -my-1 flex max-w-full gap-1 overflow-x-auto px-1 py-1">
         <button
           v-for="tab in tabs"
           :key="tab.label"

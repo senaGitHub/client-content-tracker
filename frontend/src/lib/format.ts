@@ -67,8 +67,9 @@ export function overdueLabel(dueDate: string, today: Date = new Date()): string 
 }
 
 /**
- * Due-date label for a content item: "2 gün gecikti", "Bugün", "Yarın", "Cuma" (within the week),
- * otherwise "12 Ara". `overdue` comes from the server so the rule (past due and not published)
+ * Due-date label for a content item: "2 gün gecikti", "Bugün", "Yarın", "3 gün kaldı" (2–6 days),
+ * otherwise "12 Ara". The one place for this rule: the Overview feed, the content list (also on the
+ * brand detail page) and board cards all use it, directly or through `dueHint`. `overdue` comes from the server so the rule (past due and not published)
  * is not re-implemented here.
  */
 export function dueLabel(item: { dueDate: string; overdue: boolean }, today: Date = new Date()): string {
@@ -76,12 +77,12 @@ export function dueLabel(item: { dueDate: string; overdue: boolean }, today: Dat
   const days = daysUntil(item.dueDate, today)
   if (days === 0) return 'Bugün'
   if (days === 1) return 'Yarın'
-  if (days > 1 && days < 7) return format(parseDay(item.dueDate), 'EEEE', { locale: tr })
+  if (days > 1 && days < 7) return `${days} gün kaldı`
   return formatShortDate(item.dueDate)
 }
 
 /**
- * Second line under a due date: "2 gün gecikti" when overdue, or "Bugün" / "Yarın" / weekday when
+ * Second line under a due date: "2 gün gecikti" when overdue, or "Bugün" / "Yarın" / "N gün kaldı" when
  * it is close and not published yet; undefined otherwise.
  */
 export function dueHint(item: { dueDate: string; overdue: boolean; status: string }): string | undefined {

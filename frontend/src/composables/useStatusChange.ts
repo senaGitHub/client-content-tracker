@@ -1,8 +1,8 @@
-import { reactive } from 'vue'
+import { computed, reactive } from 'vue'
 import { toast } from 'vue-sonner'
 import { contentsApi } from '@/api'
 import type { ContentResponse, ContentStatus } from '@/api'
-import { useDeferredApprove } from '@/composables/useDeferredApprove'
+import { DEFER_DELAY_MS, useDeferredMove } from '@/composables/useDeferredMove'
 import { refreshNavCounts } from '@/composables/useNavCounts'
 import { STATUS_LABELS } from '@/lib/content'
 import { statusChangeError } from '@/lib/errors'
@@ -34,7 +34,7 @@ export function asPublishing(item: ContentResponse): ContentResponse {
  *
  * One rule, everywhere:
  * - To PUBLISHED (when allowed): cannot be undone on the server, so the PATCH waits ~5 s and
- *   "Geri al" cancels it before anything is sent (useDeferredApprove).
+ *   "Geri al" cancels it before anything is sent (useDeferredMove).
  * - Any other move: sent at once; "Geri al" sends the reverse move (when the rule allows it).
  * A refused move (409) or a network error puts the item back and explains why.
  *
@@ -45,7 +45,7 @@ export function asPublishing(item: ContentResponse): ContentResponse {
 export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase) => Promise<unknown> | void) {
   const pending = reactive(new Set<number>())
 
-  const publishing = useDeferredApprove({
+  const publishing = useDeferredMove({
     onStart: (item) => place(asPublishing(item), 'optimistic'),
     onCancel: (item) => place(item, 'reverted'),
     onCommitted: (updated) => place(updated, 'confirmed'),
@@ -62,7 +62,7 @@ export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase
     // Only a publish the rule allows is deferred. A refused one (e.g. a draft dropped on Yayında)
     // goes straight to the server so its 409 snaps the card back at once.
     if (target === 'PUBLISHED' && item.allowedTransitions.includes('PUBLISHED')) {
-      publishing.approve(item)
+      publishing.move(item, 'PUBLISHED')
       return
     }
 
@@ -79,6 +79,8 @@ export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase
       toast.success(
         isUndo ? `${updated.title} tekrar ${STATUS_LABELS[target]} durumunda` : movedMessage(updated.title, original.status, target),
         {
+          // Every status toast that offers "Geri al" stays as long as a deferred move waits (hover still pauses it).
+          duration: canUndo ? DEFER_DELAY_MS : undefined,
           action: canUndo
             ? { label: 'Geri al', onClick: () => move(updated, original.status, { isUndo: true }) }
             : undefined,
@@ -97,7 +99,7 @@ export function useStatusChange(place: (item: ContentResponse, phase: PlacePhase
     move,
     isPending,
     /** Publishes still waiting for their PATCH; views re-apply them after reloading data. */
-    publishingItems: publishing.pendingItems,
+    publishingItems: computed(() => publishing.pendingMoves.value.map((entry) => entry.item)),
     /** Sends waiting publishes now (e.g. when the edit sheet's page is left). */
     flush: publishing.flush,
   }

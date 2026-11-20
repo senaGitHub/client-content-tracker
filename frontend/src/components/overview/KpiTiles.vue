@@ -51,7 +51,7 @@ const tiles = computed<Tile[]>(() => {
       hint: oldestWaiting(m.oldestInReviewDays),
       icon: ClockIcon,
       iconClass: 'bg-review text-review-foreground',
-      to: listLink({ status: 'IN_REVIEW' }),
+      to: '/approvals',
     },
     {
       key: 'published',
@@ -78,7 +78,7 @@ const tiles = computed<Tile[]>(() => {
 </script>
 
 <template>
-  <section aria-label="Özet" class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+  <section aria-label="Özet" class="grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-5">
     <template v-if="tiles.length === 0">
       <div v-for="n in 4" :key="n" class="rounded-card border bg-card px-4 py-3.5 shadow-card" aria-hidden="true">
         <div class="flex items-center gap-2">
@@ -106,13 +106,13 @@ const tiles = computed<Tile[]>(() => {
         <span :class="cn('flex size-7 shrink-0 items-center justify-center rounded-lg', tile.iconClass)">
           <component :is="tile.icon" class="size-4" :stroke-width="tile.alert ? 2.3 : 1.9" aria-hidden="true" />
         </span>
-        <span :class="cn('min-w-0 text-[13px] font-medium break-words', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
+        <span :class="cn('min-w-0 text-sm font-medium break-words', tile.alert ? 'text-overdue-text' : 'text-secondary-text')">
           {{ tile.label }}
         </span>
       </span>
       <span class="mt-1.5 flex flex-wrap items-baseline gap-x-2">
         <span class="text-kpi tabular-nums">{{ tile.value }}</span>
-        <span v-if="tile.hint" :class="cn('text-xs', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
+        <span v-if="tile.hint" :class="cn('text-[13px]', tile.alert ? 'text-overdue-text' : 'text-muted-foreground')">
           {{ tile.hint }}
         </span>
       </span>

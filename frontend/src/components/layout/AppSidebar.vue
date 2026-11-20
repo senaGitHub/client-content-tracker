@@ -25,16 +25,13 @@ const items = computed<NavItem[]>(() => [
   { key: 'brands', label: 'Markalar', to: '/clients', icon: LayersIcon },
   { key: 'contents', label: 'İçerikler', to: '/content', icon: ImageIcon },
   {
-    // Not a page of its own: the content list filtered to "Onayda".
     key: 'approvals',
     label: 'Onay Süreci',
-    to: { path: '/content', query: { view: 'list', status: 'IN_REVIEW' } },
+    to: '/approvals',
     icon: CircleCheckIcon,
     badge: counts.value?.inReview,
   },
 ])
-
-const isApprovalsView = computed(() => route.path === '/content' && route.query.status === 'IN_REVIEW')
 
 function isActive(key: NavItem['key']): boolean {
   switch (key) {
@@ -43,9 +40,9 @@ function isActive(key: NavItem['key']): boolean {
     case 'brands':
       return route.path === '/clients' || route.path.startsWith('/clients/')
     case 'contents':
-      return route.path === '/content' && !isApprovalsView.value
+      return route.path === '/content'
     case 'approvals':
-      return isApprovalsView.value
+      return route.path === '/approvals'
   }
 }
 </script>
@@ -71,7 +68,7 @@ function isActive(key: NavItem['key']): boolean {
             <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
             <span
               v-if="item.badge"
-              class="shrink-0 rounded-full bg-coral-solid px-2 py-0.5 text-[13px] font-bold text-coral-solid-foreground tabular-nums"
+              class="inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-coral-solid px-[5px] text-[11px] leading-none font-semibold text-coral-solid-foreground tabular-nums"
             >
               <span class="sr-only">, </span>{{ item.badge }}<span class="sr-only"> içerik onay bekliyor</span>
             </span>

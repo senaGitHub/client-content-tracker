@@ -1,5 +1,7 @@
 export { ApiError } from './http'
 export type { ProblemDetail } from './http'
+export { approvalsApi } from './approvals'
+export type { ApprovalFilters, ApprovalSort } from './approvals'
 export { clientsApi } from './clients'
 export { contentsApi } from './contents'
 export { dashboardApi } from './dashboard'

@@ -35,6 +35,12 @@ const router = createRouter({
           meta: { title: 'İçerikler' },
         },
         {
+          path: 'approvals',
+          name: 'approvals',
+          component: () => import('@/views/ApprovalsView.vue'),
+          meta: { title: 'Onay Süreci' },
+        },
+        {
           path: ':pathMatch(.*)*',
           name: 'not-found',
           component: () => import('@/views/NotFoundView.vue'),

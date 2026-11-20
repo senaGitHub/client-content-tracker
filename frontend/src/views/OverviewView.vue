@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import { CircleAlertIcon, PlusIcon } from '@lucide/vue'
 import { useIntervalFn, useNow } from '@vueuse/core'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { dashboardApi } from '@/api'
-import type { ContentResponse, ContentStatus } from '@/api'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import ApprovalsPanel from '@/components/overview/ApprovalsPanel.vue'
 import BrandStrip from '@/components/overview/BrandStrip.vue'
 import ContentFeed from '@/components/overview/ContentFeed.vue'
 import KpiTiles from '@/components/overview/KpiTiles.vue'
 import { Button } from '@/components/ui/button'
+import { useApprovalActions } from '@/composables/useApprovalActions'
 import { useAsyncData } from '@/composables/useAsyncData'
 import { useContentDialog } from '@/composables/useContentDialog'
-import { useDeferredApprove } from '@/composables/useDeferredApprove'
 import { refreshNavCounts } from '@/composables/useNavCounts'
-import { useStatusChange } from '@/composables/useStatusChange'
 import { formatLongDate } from '@/lib/format'
 
 const { openNew, onSaved } = useContentDialog()
@@ -55,29 +53,14 @@ onSaved(() => void refreshAll())
 
 // ---- Approvals ------------------------------------------------------------------------------
 
-// Onayla: the row stays with a spinner and "Geri al"; the PATCH goes after a few seconds unless
-// cancelled. No number on the page changes while it waits: everything updates together once the
-// PATCH is done and refreshAll (awaited) has fresh data.
-const approval = useDeferredApprove({ onCommitted: refreshAll, onFailed: () => void refreshAll() })
-
-// Revizyon: sent at once (with an undo toast), like every other status change.
-// Latest known status per item until fresh dashboard data arrives.
-const revised = reactive(new Map<number, ContentStatus>())
-watch(dashboard.data, () => revised.clear())
-const revision = useStatusChange((item: ContentResponse, phase) => {
-  revised.set(item.id, item.status)
-  if (phase !== 'optimistic') void refreshAll()
-})
-
-const approvals = computed(() =>
-  dashboard.data.value?.approvals.filter(
-    (item) => (revised.get(item.id) ?? 'IN_REVIEW') === 'IN_REVIEW',
-  ),
-)
+// Onayla and Revizyon, both deferred (spinner on the pressed button, "Geri al" in the toast), shared
+// with the Onay Süreci page. Nothing on this page changes while a move waits: once the PATCH is
+// done, refreshAll (awaited) brings every number in together.
+const approvals = useApprovalActions(() => dashboard.data.value?.approvals, refreshAll)
 
 const totals = computed(() => dashboard.data.value?.totals)
 /** Ids of approvals waiting to be sent; the feed shows those rows as pending. */
-const approvingIds = computed(() => approval.pendingItems.value.map((item) => item.id))
+const approvingIds = computed(() => approvals.approvingItems.value.map((item) => item.id))
 
 const clientOptions = computed(() =>
   (dashboard.data.value?.clients ?? []).map(({ id, name, coverImageUrl }) => ({ id, name, coverImageUrl })),
@@ -85,7 +68,7 @@ const clientOptions = computed(() =>
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col gap-5 xl:gap-6">
     <!-- The page's flex gap does the spacing, so the header's own bottom margin is dropped. -->
     <PageHeader :title="greeting" class="mb-0!">
       <template #description>
@@ -113,8 +96,10 @@ const clientOptions = computed(() =>
 
     <KpiTiles v-else :totals="totals" :metrics="dashboard.data.value?.metrics" />
 
-    <div class="grid grid-cols-1 items-start gap-[18px] min-[1340px]:grid-cols-[minmax(0,1fr)_360px]">
-      <div class="flex min-w-0 flex-col gap-[18px]">
+    <!-- On xl, the same 4 columns and 20px column gap as the KPI row: the left side spans 3, the approvals panel
+         sits under the Geciken tile with the same edges. Below xl everything stacks, as before. -->
+    <div class="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-4 xl:gap-x-5">
+      <div class="flex min-w-0 flex-col gap-[18px] xl:col-span-3 xl:gap-6">
         <BrandStrip v-if="!dashboard.error.value || dashboard.data.value" :clients="dashboard.data.value?.clients" />
         <ContentFeed
           ref="feed"
@@ -126,14 +111,10 @@ const clientOptions = computed(() =>
 
       <ApprovalsPanel
         v-if="!dashboard.error.value || dashboard.data.value"
-        :items="approvals"
+        class="min-w-0"
+        :items="approvals.visible.value"
         :total="totals?.inReview ?? 0"
-        :is-busy="revision.isPending"
-        :is-approving="approval.isPending"
-        :can-undo="approval.canCancel"
-        @approve="approval.approve"
-        @undo="(item) => approval.cancel(item.id)"
-        @revise="(item) => revision.move(item, 'DRAFT')"
+        :actions="approvals"
       />
     </div>
   </div>

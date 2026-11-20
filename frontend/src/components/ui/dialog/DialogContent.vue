@@ -4,6 +4,7 @@ import type { DialogContentEmits, DialogContentProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
 import { XIcon } from '@lucide/vue'
 import { reactiveOmit } from '@vueuse/core'
+import { keepOpenOnToast } from '@/lib/overlay'
 import { cn } from '@/lib/utils'
 import {
   DialogClose,
@@ -34,6 +35,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
+      @pointer-down-outside="keepOpenOnToast"
+      @interact-outside="keepOpenOnToast"
       :class="cn('bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 grid max-w-[calc(100%-2rem)] gap-4 rounded-dialog border border-border p-6 text-sm shadow-pop duration-100 sm:max-w-sm fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none', props.class)"
     >
       <slot />

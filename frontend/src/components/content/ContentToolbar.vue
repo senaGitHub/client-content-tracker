@@ -12,8 +12,6 @@ import { cn } from '@/lib/utils'
 const props = defineProps<{
   query: ContentQuery
   hasFilters: boolean
-  /** "N sonuç" on the right; undefined while unknown. */
-  resultCount?: number
   /**
    * Search on the left, filters on the right (the board, which has no status tabs). The filters
    * still wrap under the search when there is no room (justify-between keeps a lone item left).
@@ -69,7 +67,7 @@ function clearSearch() {
       </button>
     </label>
 
-    <!-- Filters, "Filtreleri temizle" and "N sonuç" move as one group, so they wrap together. -->
+    <!-- Filters and "Filtreleri temizle" move as one group, so they wrap together. -->
     <div class="flex w-full flex-wrap items-center gap-3 sm:w-auto">
       <div class="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap">
         <FilterSelect
@@ -111,9 +109,6 @@ function clearSearch() {
         Filtreleri temizle
       </button>
 
-      <span v-if="hasFilters && resultCount !== undefined" class="ml-auto text-sm text-muted-foreground tabular-nums" aria-live="polite">
-        {{ resultCount }} sonuç
-      </span>
     </div>
   </div>
 </template>

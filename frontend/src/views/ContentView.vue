@@ -30,7 +30,7 @@ function setView(view: ContentView) {
   update({ view, status: undefined })
 }
 
-// ---- Status counts: the list's tabs and the "N sonuç" next to the filters ---------------------
+// ---- Status counts: the list's tabs ---------------------
 
 const counts = useAsyncData((signal) => contentsApi.statusCounts(filters.value, signal), { immediate: false })
 watch(() => JSON.stringify(filters.value), () => void counts.reload(), { immediate: true })
@@ -56,11 +56,6 @@ const description = computed(() =>
     : 'Tüm markalarınızın içeriklerini tek yerden yönetin.',
 )
 
-const resultCount = computed(() => {
-  const c = counts.data.value
-  if (!c) return undefined
-  return state.value.view === 'list' ? countFor(c, state.value.status) : c.total
-})
 </script>
 
 <template>
@@ -106,7 +101,6 @@ const resultCount = computed(() => {
       <ContentToolbar
         :query="state"
         :has-filters="hasFilters"
-        :result-count="resultCount"
         :spread="state.view === 'board'"
         :class="state.view === 'board' ? 'w-full' : 'w-full lg:w-auto'"
         @update="(patch) => update(patch)"

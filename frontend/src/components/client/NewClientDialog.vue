@@ -130,7 +130,7 @@ const TEXT_FIELDS: { field: Exclude<Field, 'coverImageUrl'>; label: string; plac
         <div>
           <DialogTitle class="text-[22px] font-extrabold tracking-[-0.01em]">Yeni Marka</DialogTitle>
           <DialogDescription class="mt-1 text-[13px] text-muted-foreground">
-            Ad, sektör ve iletişim bilgisi yeterli. Kapak isteğe bağlı.
+            Markanın adını, sektörünü ve iletişim bilgilerini girin.
           </DialogDescription>
         </div>
         <DialogClose as-child>

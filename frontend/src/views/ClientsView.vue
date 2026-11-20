@@ -61,34 +61,38 @@ const isEmpty = computed(() => !!data.value && data.value.totalElements === 0)
 <template>
   <PageHeader title="Markalar" :description="description" class="mb-5">
     <template #actions>
-      <label
-        class="flex h-10 w-full items-center gap-2.5 rounded-lg border border-input bg-card px-3.5 transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 sm:w-[260px]"
-      >
-        <SearchIcon class="size-[17px] shrink-0 text-foreground" aria-hidden="true" />
-        <span class="sr-only">Marka ara</span>
-        <input
-          v-model="search"
-          type="search"
-          placeholder="Marka ara..."
-          class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
-          @keydown.esc="clearSearch"
-        />
-        <button
-          v-if="search"
-          type="button"
-          class="-mr-1.5 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-          aria-label="Aramayı temizle"
-          @click="clearSearch"
-        >
-          <XIcon class="size-3.5" />
-        </button>
-      </label>
       <Button size="lg" @click="openNewClient">
         <PlusIcon :stroke-width="2.4" aria-hidden="true" />
         Yeni Marka
       </Button>
     </template>
   </PageHeader>
+
+  <!-- Same place and size as the Content page's search (ContentToolbar). -->
+  <div role="search" aria-label="Markaları ara" class="mb-5">
+    <label
+      class="flex h-10 w-full items-center gap-2.5 rounded-lg border border-input bg-card px-3.5 transition-shadow focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 sm:w-[260px]"
+    >
+      <SearchIcon class="size-[17px] shrink-0 text-foreground" aria-hidden="true" />
+      <span class="sr-only">Marka ara</span>
+      <input
+        v-model="search"
+        type="search"
+        placeholder="Marka ara..."
+        class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+        @keydown.esc="clearSearch"
+      />
+      <button
+        v-if="search"
+        type="button"
+        class="-mr-1.5 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        aria-label="Aramayı temizle"
+        @click="clearSearch"
+      >
+        <XIcon class="size-3.5" />
+      </button>
+    </label>
+  </div>
 
   <div
     v-if="error && !data"
@@ -137,18 +141,6 @@ const isEmpty = computed(() => !!data.value && data.value.totalElements === 0)
 
     <template v-else>
       <BrandCard v-for="client in data?.items" :key="client.id" :client="client" />
-
-      <button
-        type="button"
-        class="flex min-h-[260px] flex-col items-center justify-center gap-2.5 rounded-card border-2 border-dashed border-coral/35 bg-coral-soft/50 p-6 text-base font-semibold text-coral-text outline-none transition-colors hover:border-coral/60 hover:bg-coral-soft focus-visible:ring-3 focus-visible:ring-ring/50"
-        @click="openNewClient"
-      >
-        <span class="flex size-[52px] items-center justify-center rounded-full bg-coral-soft">
-          <PlusIcon class="size-[22px] text-coral" :stroke-width="2.4" aria-hidden="true" />
-        </span>
-        Yeni marka ekle
-        <span class="text-[13px] font-normal text-muted-foreground">Ad, sektör ve iletişim bilgisi yeterli</span>
-      </button>
     </template>
   </div>
 </template>

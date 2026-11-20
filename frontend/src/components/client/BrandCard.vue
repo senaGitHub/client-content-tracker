@@ -31,13 +31,15 @@ defineProps<{ client: ClientResponse }>()
     </div>
 
     <div class="flex flex-1 flex-col gap-3 px-[18px] py-4">
-      <div class="flex flex-wrap items-center gap-2">
+      <!-- min-h-6 = badge height, so cards without badges keep the same row height. -->
+      <div class="flex min-h-6 flex-wrap items-center gap-2">
         <span v-if="client.counts.overdue" class="rounded-full bg-overdue px-2.5 py-[3px] text-xs font-semibold text-white">
           {{ client.counts.overdue }} gecikmiş
         </span>
         <span v-if="client.counts.inReview" class="rounded-full bg-review px-2.5 py-[3px] text-xs font-semibold text-review-foreground">
           {{ client.counts.inReview }} onayda
         </span>
+        <span v-if="!client.counts.overdue && !client.counts.inReview" class="text-xs text-muted-foreground">Bekleyen iş yok</span>
         <span class="ml-auto text-[13px] text-muted-foreground tabular-nums">{{ client.counts.total }} içerik</span>
       </div>
 
